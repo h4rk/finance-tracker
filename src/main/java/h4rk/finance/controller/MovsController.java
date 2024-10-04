@@ -47,4 +47,10 @@ public class MovsController {
 		return ResponseEntity.noContent().build();
 	}
 
+	@GetMapping("/tables")
+	public ResponseEntity<List<String>> getAllTables() {
+		List<String> tables = mService.getAllTables();
+		return ResponseEntity.ok(tables);
+	}
 }
+

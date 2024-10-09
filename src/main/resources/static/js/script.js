@@ -18,6 +18,22 @@ document.addEventListener('DOMContentLoaded', async function() {
   }
 });
 
+document.addEventListener('DOMContentLoaded', function() {
+    const transactionTypeToggle = document.getElementById('transactionType');
+    
+    transactionTypeToggle.addEventListener('change', function() {
+        const leftLabel = this.parentNode.previousElementSibling;
+        const rightLabel = this.parentNode.nextElementSibling;
+        
+        if (this.checked) {
+            leftLabel.classList.remove('font-bold');
+            rightLabel.classList.add('font-bold');
+        } else {
+            leftLabel.classList.add('font-bold');
+            rightLabel.classList.remove('font-bold');
+        }
+    });
+});
 
 function loadDataSync() {
   const xhr = new XMLHttpRequest();
@@ -59,6 +75,8 @@ async function loadData() {
   } finally {
       console.log('Stato finale di appData:', appData);
   }
+  setupBudgetModal();
+  setupEventListeners();
 }
 
 function saveData() {
@@ -148,24 +166,33 @@ function updateBudgetProgress() {
     budgetProgressBars.innerHTML = '';
 
     appData.categories.forEach(category => {
-        const spent = appData.transactions
-            .filter(t => t.category === category.name && t.amount < 0)
-            .reduce((sum, t) => sum + Math.abs(t.amount), 0);
-        const budget = category.budget;
-        const percentage = Math.min((spent / budget) * 100, 100);
+        if (category.budget) {
+            const spent = appData.transactions
+                .filter(t => t.category === category.name && t.amount < 0)
+                .reduce((sum, t) => sum + Math.abs(t.amount), 0);
+            const budget = category.budget;
+            const percentage = Math.min((spent / budget) * 100, 100);
 
-        const barHtml = `
-            <div class="mb-4">
-                <div class="flex justify-between mb-1">
-                    <span class="text-sm font-medium text-gray-700">${category.name}</span>
-                    <span class="text-sm font-medium text-gray-700">${formatCurrency(spent)} / ${formatCurrency(budget)}</span>
+            const barHtml = `
+                <div class="mb-4">
+                    <div class="flex justify-between mb-1">
+                        <span class="text-sm font-medium text-gray-700">${category.name}</span>
+                        <div>
+                            <span class="text-sm font-medium text-gray-700">${formatCurrency(spent)} / ${formatCurrency(budget)}</span>
+                            <button class="ml-2 text-red-600 hover:text-red-800" onclick="removeBudget('${category.name}')">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="w-full bg-gray-200 rounded-full h-2.5">
+                        <div class="bg-blue-600 h-2.5 rounded-full" style="width: ${percentage}%"></div>
+                    </div>
                 </div>
-                <div class="w-full bg-gray-200 rounded-full h-2.5">
-                    <div class="bg-blue-600 h-2.5 rounded-full" style="width: ${percentage}%"></div>
-                </div>
-            </div>
-        `;
-        budgetProgressBars.innerHTML += barHtml;
+            `;
+            budgetProgressBars.innerHTML += barHtml;
+        }
     });
 }
 
@@ -231,6 +258,9 @@ function setupEventListeners() {
     document.getElementById('transactionFilter').addEventListener('change', filterTransactions);
     document.getElementById('categoryList').addEventListener('click', handleCategoryDelete);
     document.getElementById('transactionTable').addEventListener('click', handleTransactionAction);
+    document.getElementById('addBudgetBtn').addEventListener('click', showBudgetModal);
+    document.getElementById('closeBudgetModal').addEventListener('click', hideBudgetModal);
+    document.getElementById('newBudgetForm').addEventListener('submit', handleNewBudget);
 }
 
 function handleNewTransaction(e) {
@@ -281,9 +311,29 @@ function handleNewCategory(e) {
 }
 
 function updateTransactionTypeLabel() {
-    const label = document.getElementById('transactionTypeLabel');
-    label.textContent = document.getElementById('transactionType').checked ? 'Entrata' : 'Uscita';
+    const transactionType = document.getElementById('transactionType');
+    const leftLabel = transactionType.parentNode.previousElementSibling;
+    const rightLabel = transactionType.parentNode.nextElementSibling;
+    
+    if (transactionType.checked) {
+        leftLabel.classList.remove('font-bold');
+        rightLabel.classList.add('font-bold');
+    } else {
+        leftLabel.classList.add('font-bold');
+        rightLabel.classList.remove('font-bold');
+    }
 }
+
+document.addEventListener('DOMContentLoaded', function() {
+    const transactionType = document.getElementById('transactionType');
+    if (transactionType) {
+        transactionType.addEventListener('change', updateTransactionTypeLabel);
+        // Inizializza l'etichetta al caricamento della pagina
+        updateTransactionTypeLabel();
+    } else {
+        console.error('Elemento transactionType non trovato');
+    }
+});
 
 function filterTransactions() {
     const searchTerm = document.getElementById('transactionSearch').value.toLowerCase();
@@ -357,3 +407,143 @@ function getMonthName(monthIndex) {
 function getRandomColor() {
     return '#' + Math.floor(Math.random()*16777215).toString(16);
 }
+
+function updateTransactionTypeColors() {
+    const transactionType = document.getElementById('transactionType');
+    const submitButton = document.getElementById('submitTransaction');
+    
+    if (transactionType.checked) {
+        // Entrata
+        submitButton.classList.remove('bg-red-600', 'hover:bg-red-700', 'focus:ring-red-500');
+        submitButton.classList.add('bg-green-600', 'hover:bg-green-700', 'focus:ring-green-500');
+    } else {
+        // Uscita
+        submitButton.classList.remove('bg-green-600', 'hover:bg-green-700', 'focus:ring-green-500');
+        submitButton.classList.add('bg-red-600', 'hover:bg-red-700', 'focus:ring-red-500');
+    }
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    const transactionType = document.getElementById('transactionType');
+    if (transactionType) {
+        transactionType.addEventListener('change', function() {
+            updateTransactionTypeLabel();
+            updateTransactionTypeColors();
+        });
+        // Inizializza i colori al caricamento della pagina
+        updateTransactionTypeColors();
+    } else {
+        console.error('Elemento transactionType non trovato');
+    }
+});
+
+// Aggiungi questa funzione alla fine del file
+
+function setupBudgetModal() {
+    const modal = document.createElement('div');
+    modal.className = 'fixed z-10 inset-0 overflow-y-auto hidden';
+    modal.id = 'budgetModal';
+    modal.innerHTML = `
+        <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+            <div class="fixed inset-0 transition-opacity" aria-hidden="true">
+                <div class="absolute inset-0 bg-gray-500 opacity-75"></div>
+            </div>
+            <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+            <div class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
+                <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                    <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4">Crea nuovo budget</h3>
+                    <form id="newBudgetForm">
+                        <div class="mb-4">
+                            <label for="budgetCategory" class="block text-sm font-medium text-gray-700">Categoria</label>
+                            <select id="budgetCategory" name="category" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
+                                <!-- Le opzioni verranno caricate dinamicamente -->
+                            </select>
+                        </div>
+                        <div class="mb-4">
+                            <label for="budgetAmount" class="block text-sm font-medium text-gray-700">Importo budget</label>
+                            <input type="number" id="budgetAmount" name="amount" required min="0" step="0.01" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
+                        </div>
+                    </form>
+                </div>
+                <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+                    <button type="submit" form="newBudgetForm" class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-indigo-600 text-base font-medium text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:ml-3 sm:w-auto sm:text-sm">
+                        Crea budget
+                    </button>
+                    <button type="button" id="closeBudgetModal" class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm">
+                        Annulla
+                    </button>
+                </div>
+            </div>
+        </div>
+    `;
+    document.body.appendChild(modal);
+}
+
+function showBudgetModal() {
+    const modal = document.getElementById('budgetModal');
+    modal.classList.remove('hidden');
+    loadCategoriesForBudget();
+}
+
+function hideBudgetModal() {
+    const modal = document.getElementById('budgetModal');
+    modal.classList.add('hidden');
+}
+
+function loadCategoriesForBudget() {
+    const categorySelect = document.getElementById('budgetCategory');
+    categorySelect.innerHTML = '<option value="">Seleziona categoria</option>';
+    
+    appData.categories.forEach(category => {
+        if (category.type === 'expense') {
+            const option = document.createElement('option');
+            option.value = category.name;
+            option.textContent = category.name;
+            if (category.budget) {
+                option.textContent += ` (Budget attuale: ${formatCurrency(category.budget)})`;
+            }
+            categorySelect.appendChild(option);
+        }
+    });
+
+    if (categorySelect.options.length === 1) {
+        categorySelect.innerHTML += '<option value="" disabled>Nessuna categoria di spesa disponibile</option>';
+    }
+}
+
+function handleNewBudget(e) {
+    e.preventDefault();
+    const form = e.target;
+    const categoryName = form.category.value;
+    const budgetAmount = parseFloat(form.amount.value);
+
+    const category = appData.categories.find(c => c.name === categoryName);
+    if (category) {
+        category.budget = budgetAmount;
+        updateBudgetProgress();
+        saveData();
+        hideBudgetModal();
+        // Aggiorna la lista delle categorie nel form principale
+        loadCategories();
+    } else {
+        console.error('Categoria non trovata:', categoryName);
+    }
+}
+
+function removeBudget(categoryName) {
+    const category = appData.categories.find(c => c.name === categoryName);
+    if (category) {
+        if (confirm(`Sei sicuro di voler rimuovere il budget per la categoria "${categoryName}"?`)) {
+            delete category.budget;
+            updateBudgetProgress();
+            saveData();
+            // Aggiorna la lista delle categorie nel form principale
+            loadCategories();
+        }
+    } else {
+        console.error('Categoria non trovata:', categoryName);
+    }
+}
+
+// Aggiungi questa riga alla fine del file
+window.removeBudget = removeBudget;

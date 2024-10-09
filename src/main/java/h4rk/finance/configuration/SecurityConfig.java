@@ -13,7 +13,6 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
 		return http.authorizeHttpRequests(authorizationManagerRequestMatcherRegistry -> 
-		authorizationManagerRequestMatcherRegistry.requestMatchers("/*").permitAll()).build();
-
+		authorizationManagerRequestMatcherRegistry.requestMatchers("/**").permitAll()).build();
     }
 }

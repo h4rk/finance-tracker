@@ -18,6 +18,22 @@ document.addEventListener('DOMContentLoaded', async function() {
   }
 });
 
+document.addEventListener('DOMContentLoaded', function() {
+    const transactionTypeToggle = document.getElementById('transactionType');
+    
+    transactionTypeToggle.addEventListener('change', function() {
+        const leftLabel = this.parentNode.previousElementSibling;
+        const rightLabel = this.parentNode.nextElementSibling;
+        
+        if (this.checked) {
+            leftLabel.classList.remove('font-bold');
+            rightLabel.classList.add('font-bold');
+        } else {
+            leftLabel.classList.add('font-bold');
+            rightLabel.classList.remove('font-bold');
+        }
+    });
+});
 
 function loadDataSync() {
   const xhr = new XMLHttpRequest();
@@ -281,9 +297,29 @@ function handleNewCategory(e) {
 }
 
 function updateTransactionTypeLabel() {
-    const label = document.getElementById('transactionTypeLabel');
-    label.textContent = document.getElementById('transactionType').checked ? 'Entrata' : 'Uscita';
+    const transactionType = document.getElementById('transactionType');
+    const leftLabel = transactionType.parentNode.previousElementSibling;
+    const rightLabel = transactionType.parentNode.nextElementSibling;
+    
+    if (transactionType.checked) {
+        leftLabel.classList.remove('font-bold');
+        rightLabel.classList.add('font-bold');
+    } else {
+        leftLabel.classList.add('font-bold');
+        rightLabel.classList.remove('font-bold');
+    }
 }
+
+document.addEventListener('DOMContentLoaded', function() {
+    const transactionType = document.getElementById('transactionType');
+    if (transactionType) {
+        transactionType.addEventListener('change', updateTransactionTypeLabel);
+        // Inizializza l'etichetta al caricamento della pagina
+        updateTransactionTypeLabel();
+    } else {
+        console.error('Elemento transactionType non trovato');
+    }
+});
 
 function filterTransactions() {
     const searchTerm = document.getElementById('transactionSearch').value.toLowerCase();

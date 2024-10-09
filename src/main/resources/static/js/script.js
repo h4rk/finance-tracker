@@ -393,3 +393,32 @@ function getMonthName(monthIndex) {
 function getRandomColor() {
     return '#' + Math.floor(Math.random()*16777215).toString(16);
 }
+
+function updateTransactionTypeColors() {
+    const transactionType = document.getElementById('transactionType');
+    const submitButton = document.getElementById('submitTransaction');
+    
+    if (transactionType.checked) {
+        // Entrata
+        submitButton.classList.remove('bg-red-600', 'hover:bg-red-700', 'focus:ring-red-500');
+        submitButton.classList.add('bg-green-600', 'hover:bg-green-700', 'focus:ring-green-500');
+    } else {
+        // Uscita
+        submitButton.classList.remove('bg-green-600', 'hover:bg-green-700', 'focus:ring-green-500');
+        submitButton.classList.add('bg-red-600', 'hover:bg-red-700', 'focus:ring-red-500');
+    }
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    const transactionType = document.getElementById('transactionType');
+    if (transactionType) {
+        transactionType.addEventListener('change', function() {
+            updateTransactionTypeLabel();
+            updateTransactionTypeColors();
+        });
+        // Inizializza i colori al caricamento della pagina
+        updateTransactionTypeColors();
+    } else {
+        console.error('Elemento transactionType non trovato');
+    }
+});

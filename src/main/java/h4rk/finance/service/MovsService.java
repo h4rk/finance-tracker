@@ -17,22 +17,45 @@ public class MovsService {
 
     public List<Mov> getMovs() {
         log.info("Executing getMovs()...");
-		return null;
+		try {
+			return movsRepository.getMovs();
+		} catch (Exception e) {
+			log.error("Error executing getMovs(): [{}]", e.getMessage());
+			throw e;
+		}
     }
 
 	public Mov getMovById(long id) {
         log.info("Executing getMovById() with id: [{}]...", id);
-		return null;
+		try {
+			return movsRepository.getMovById(id);
+		} catch (Exception e) {
+			log.error("Error executing getMovById(): [{}]", e.getMessage());
+			throw e;
+		}
 	}
 
 	public void postMovs(Mov mov) {
         log.info("Executing postMovs() with mov: [{}]...", mov);
+		try {
+			movsRepository.postMovs(mov);
+		} catch (Exception e) {
+			log.error("Error executing postMovs(): [{}]", e.getMessage());
+			throw e;
+		}
 	}
 
 	public void deleteMovs(long id) {
         log.info("Executing deleteMovs() with id: [{}]...", id);
+		try {
+			movsRepository.deleteMovs(id);
+		} catch (Exception e) {
+			log.error("Error executing deleteMovs(): [{}]", e.getMessage());
+			throw e;
+		}
 	}
 
+	//TODO remove this method
 	public List<String> getAllTables() {
 		log.info("Executing getAllTables()...");
 		List<String> tables = movsRepository.getAllTables();

@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import h4rk.finance.dto.Mov;
@@ -36,18 +37,18 @@ public class MovsController {
 	}
 
 	@PostMapping("/movs")
-	public ResponseEntity<?> postMovs(Mov mov) {
+	public ResponseEntity<?> postMovs(@RequestBody Mov mov) {
 		mService.postMovs(mov);
 		return ResponseEntity.ok().build();
 	}
 
 	@DeleteMapping("/movs/{id}")
-	public ResponseEntity<Void> deleteMovs(@PathVariable("id") long id) {
+	public ResponseEntity<?> deleteMovs(@PathVariable("id") long id) {
 		mService.deleteMovs(id);
-		return ResponseEntity.noContent().build();
+		return ResponseEntity.ok().build();
 	}
 
-	@GetMapping("/tables")
+	@GetMapping("/tables")//TODO remove this method
 	public ResponseEntity<List<String>> getAllTables() {
 		List<String> tables = mService.getAllTables();
 		return ResponseEntity.ok(tables);

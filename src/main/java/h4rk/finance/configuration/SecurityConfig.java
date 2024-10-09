@@ -8,11 +8,14 @@ import org.springframework.security.web.SecurityFilterChain;
 
 @Configuration
 @EnableWebSecurity
-public class SecurityConfig {
+public class SecurityConfig{
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-		return http.authorizeHttpRequests(authorizationManagerRequestMatcherRegistry -> 
-		authorizationManagerRequestMatcherRegistry.requestMatchers("/**").permitAll()).build();
+		return http
+      .authorizeHttpRequests(authorizationManagerRequestMatcherRegistry -> 
+          authorizationManagerRequestMatcherRegistry.requestMatchers("/**").permitAll())
+      .csrf((csrf) -> csrf.ignoringRequestMatchers("/**"))
+      .build();
     }
 }

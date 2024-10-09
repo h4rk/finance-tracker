@@ -1,0 +1,26 @@
+{
+  "monthlySummary": {
+    "income": 12345.00,
+    "expenses": 432.00,
+    "balance": 11913.00
+  },
+  "trendData": {
+    "labels": ["Gen", "Feb", "Mar", "Apr", "Mag", "Giu", "Lug", "Ago", "Set", "Ott", "Nov", "Dic"],
+    "data": [10000, 10500, 11000, 11200, 11500, 11700, 11900, 12100, 12300, 12500, 12700, 11913]
+  },
+  "categories": [
+    {"name": "Pippo", "type": "expense", "budget": 1000, "spent": 800},
+    {"name": "Pluto", "type": "expense", "budget": 500, "spent": 150},
+    {"name": "Paperino", "type": "expense", "budget": 300, "spent": 200},
+    {"name": "Topolino", "type": "expense", "budget": 200, "spent": 180},
+    {"name": "Stipendio", "type": "income", "budget": 0, "spent": 0}
+  ],
+  "transactions": [
+    {"id": 1, "date": "2023-05-01", "description": "Spesa settimanale", "category": "Pippo", "amount": -150.00},
+    {"id": 2, "date": "2023-05-03", "description": "Benzina", "category": "Pluto", "amount": -50.00},
+    {"id": 3, "date": "2023-05-05", "description": "Bolletta luce", "category": "Paperino", "amount": -80.00},
+    {"id": 4, "date": "2023-05-07", "description": "Cinema", "category": "Topolino", "amount": -20.00},
+    {"id": 5, "date": "2023-05-10", "description": "Stipendio maggio", "category": "Stipendio", "amount": 2500.00},
+    {"id": 6, "date": "2023-05-12", "description": "Spesa settimanale", "category": "Pippo", "amount": -132.00}
+  ]
+}

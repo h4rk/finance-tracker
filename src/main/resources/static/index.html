@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="it" class="h-full bg-gray-100">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Personal Finance Tracker</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+    </style>
+</head>
+<body class="h-full">
+    <div class="min-h-full">
+        <header class="bg-white shadow">
+            <div class="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
+                <h1 class="text-3xl font-bold tracking-tight text-gray-900">Personal Finance Tracker</h1>
+            </div>
+        </header>
+
+        <main>
+            <div class="mx-auto max-w-[1800px] py-6 sm:px-6 lg:px-8">
+                <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
+                    <!-- Nuovo movimento -->
+                    <div class="bg-white overflow-hidden shadow rounded-lg">
+                        <div class="px-4 py-5 sm:p-6">
+                            <h3 class="text-lg font-medium leading-6 text-gray-900 mb-4">Nuovo movimento</h3>
+                            <form id="newTransactionForm">
+                                <div class="mb-4">
+                                    <label class="flex items-center">
+                                        <input type="checkbox" id="transactionType" class="form-checkbox h-5 w-5 text-indigo-600">
+                                        <span id="transactionTypeLabel" class="ml-2 text-gray-700">Uscita</span>
+                                    </label>
+                                </div>
+                                <div class="mb-4">
+                                    <input type="number" id="amount" name="amount" placeholder="Importo" step="0.01" required min="0" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
+                                </div>
+                                <div class="mb-4">
+                                    <input type="text" id="description" name="description" placeholder="Descrizione" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
+                                </div>
+                                <div class="mb-4">
+                                    <select id="category" name="category" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
+                                        <!-- Le opzioni verranno caricate dinamicamente -->
+                                    </select>
+                                </div>
+                                <div class="mb-4">
+                                    <input type="date" id="date" name="date" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
+                                </div>
+                                <button type="submit" class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-indigo-600 text-base font-medium text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:text-sm">Inserisci</button>
+                            </form>
+                        </div>
+                    </div>
+
+                    <!-- Andamento -->
+                    <div class="bg-white overflow-hidden shadow rounded-lg">
+                        <div class="px-4 py-5 sm:p-6">
+                            <h3 class="text-lg font-medium leading-6 text-gray-900 mb-4">Andamento</h3>
+                            <select id="trendPeriod" class="mb-4 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
+                                <option value="3">3 mesi</option>
+                                <option value="6">6 mesi</option>
+                                <option value="12" selected>12 mesi</option>
+                                <option value="24">24 mesi</option>
+                            </select>
+                            <div class="h-64">
+                                <canvas id="trendChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Gestione categorie -->
+<div class="bg-white overflow-hidden shadow rounded-lg">
+    <div class="px-4 py-5 sm:p-6">
+        <h3 class="text-lg font-medium leading-6 text-gray-900 mb-4">Gestione categorie</h3>
+        <form id="newCategoryForm" class="mb-4">
+            <div class="flex flex-col space-y-2 sm:flex-row sm:space-y-0 sm:space-x-2">
+                <input type="text" id="newCategoryName" placeholder="Nome categoria" required class="flex-grow rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
+                <select id="newCategoryType" required class="rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
+                    <option value="expense">Spesa</option>
+                    <option value="income">Entrata</option>
+                </select>
+                <button type="submit" class="inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-indigo-600 text-base font-medium text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:text-sm">+</button>
+            </div>
+        </form>
+        <ul id="categoryList" class="divide-y divide-gray-200">
+            <!-- Le categorie verranno caricate dinamicamente -->
+        </ul>
+    </div>
+</div>
+
+                    <!-- Saldo mensile -->
+                  <div class="bg-white overflow-hidden shadow rounded-lg">
+                      <div class="px-4 py-5 sm:p-6">
+                          <h3 class="text-lg font-medium leading-6 text-gray-900 mb-4">Saldo mensile</h3>
+                          <dl class="mt-5 grid grid-cols-1 gap-5 sm:grid-cols-2">
+                              <div class="px-4 py-5 bg-green-100 shadow rounded-lg overflow-hidden sm:p-6">
+                                  <dt class="text-sm font-medium text-gray-500 truncate">Entrate</dt>
+                                  <dd id="income" class="mt-1 text-2xl font-semibold text-gray-900">€0.00</dd>
+                              </div>
+                              <div class="px-4 py-5 bg-red-100 shadow rounded-lg overflow-hidden sm:p-6">
+                                  <dt class="text-sm font-medium text-gray-500 truncate">Uscite</dt>
+                                  <dd id="expenses" class="mt-1 text-2xl font-semibold text-gray-900">€0.00</dd>
+                              </div>
+                          </dl>
+                          <div class="mt-5 px-4 py-5 bg-blue-100 shadow rounded-lg overflow-hidden sm:p-6">
+                              <dt class="text-sm font-medium text-gray-500 truncate">Delta</dt>
+                              <dd id="balance" class="mt-1 text-2xl font-semibold text-gray-900">€0.00</dd>
+                          </div>
+                      </div>
+                  </div>
+                </div>
+
+                <div class="mt-8 grid grid-cols-1 gap-6 lg:grid-cols-2">
+                    <!-- Progresso budget -->
+                    <div class="bg-white overflow-hidden shadow rounded-lg">
+                        <div class="px-4 py-5 sm:p-6">
+                            <h3 class="text-lg font-medium leading-6 text-gray-900 mb-4">Progresso budget</h3>
+                            <div id="budgetProgressBars">
+                                <!-- Le barre di progresso verranno caricate dinamicamente -->
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Lista movimenti -->
+                    <div class="bg-white overflow-hidden shadow rounded-lg">
+                        <div class="px-4 py-5 sm:p-6">
+                            <h3 class="text-lg font-medium leading-6 text-gray-900 mb-4">Lista movimenti</h3>
+                            <div class="mb-4 flex space-x-2">
+                                <input type="text" id="transactionSearch" placeholder="Cerca..." class="flex-grow rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
+                                <select id="transactionFilter" class="rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
+                                    <option value="all">Tutti</option>
+                                    <option value="income">Entrate</option>
+                                    <option value="expense">Uscite</option>
+                                </select>
+                            </div>
+                            <div class="overflow-x-auto">
+                                <table id="transactionTable" class="min-w-full divide-y divide-gray-200">
+                                    <thead class="bg-gray-50">
+                                        <tr>
+                                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Data</th>
+                                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Descrizione</th>
+                                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Categoria</th>
+                                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Importo</th>
+                                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Azioni</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <!-- I movimenti verranno caricati dinamicamente -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+    <script src="/js/script.js"></script>
+</body>
+</html>

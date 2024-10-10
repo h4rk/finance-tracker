@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import h4rk.finance.dto.Mov;
+import h4rk.finance.dto.MovWithCat;
 import h4rk.finance.service.MovsService;
 
 @RestController
@@ -37,8 +38,8 @@ public class MovsController {
 	}
 
 	@PostMapping("/movs")
-	public ResponseEntity<?> postMovs(@RequestBody Mov mov) {
-		mService.postMovs(mov);
+	public ResponseEntity<?> postMovs(@RequestBody MovWithCat movWithCat) {
+		mService.postMovs(movWithCat);
 		return ResponseEntity.ok().build();
 	}
 

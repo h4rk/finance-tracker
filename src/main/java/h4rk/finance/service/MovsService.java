@@ -4,7 +4,10 @@ import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import h4rk.finance.dto.Mov;
+import h4rk.finance.dto.MovWithCat;
 import h4rk.finance.repository.MovsRepository;
 import lombok.extern.slf4j.Slf4j;
 
@@ -14,6 +17,9 @@ public class MovsService {
 
 	@Autowired
 	private MovsRepository movsRepository;
+
+	@Autowired
+	private MovCatService movCatService;
 
     public List<Mov> getMovs() {
         log.info("Executing getMovs()...");
@@ -35,10 +41,12 @@ public class MovsService {
 		}
 	}
 
-	public void postMovs(Mov mov) {
-        log.info("Executing postMovs() with mov: [{}]...", mov);
+	@Transactional(rollbackFor = Exception.class)
+	public void postMovs(MovWithCat movWithCat) {
+        log.info("Executing postMovs() with mov: [{}]...", movWithCat);
 		try {
-			movsRepository.postMovs(mov);
+			long new_id = movsRepository.postMovs(new Mov(movWithCat.getDescription(), movWithCat.getAmount(), movWithCat.getDate(), movWithCat.isIncome()));
+			movCatService.postMovCat(new_id, movWithCat.getCatIds());
 		} catch (Exception e) {
 			log.error("Error executing postMovs(): [{}]", e.getMessage());
 			throw e;

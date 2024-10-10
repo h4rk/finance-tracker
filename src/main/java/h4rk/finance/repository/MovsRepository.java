@@ -9,7 +9,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
-
+import java.math.BigInteger;
 import h4rk.finance.dto.Mov;
 
 @Repository
@@ -25,7 +25,7 @@ public class MovsRepository {
 		return jdbcTemplate.update("DELETE FROM mov WHERE mov_id = ?", id);
 	}
 
-	public long postMovs(Mov mov) {
+	public BigInteger postMovs(Mov mov) {
 
 		KeyHolder keyHolder = new GeneratedKeyHolder();
 
@@ -39,7 +39,7 @@ public class MovsRepository {
           return ps;
         }, keyHolder);
 
-        return (long) keyHolder.getKey();
+        return (BigInteger) keyHolder.getKey();
     }
 
 	public List<Mov> getMovs() {

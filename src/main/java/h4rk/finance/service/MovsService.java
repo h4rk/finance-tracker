@@ -5,6 +5,7 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import java.math.BigInteger;
 
 import h4rk.finance.dto.Mov;
 import h4rk.finance.dto.MovWithCat;
@@ -45,7 +46,7 @@ public class MovsService {
 	public void postMovs(MovWithCat movWithCat) {
         log.info("Executing postMovs() with mov: [{}]...", movWithCat);
 		try {
-			long new_id = movsRepository.postMovs(new Mov(movWithCat.getDescription(), movWithCat.getAmount(), movWithCat.getDate(), movWithCat.isIncome()));
+			BigInteger new_id = movsRepository.postMovs(new Mov(movWithCat.getDescription(), movWithCat.getAmount(), movWithCat.getDate(), movWithCat.isIncome()));
 			movCatService.postMovCat(new_id, movWithCat.getCatIds());
 		} catch (Exception e) {
 			log.error("Error executing postMovs(): [{}]", e.getMessage());

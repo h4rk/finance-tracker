@@ -61,8 +61,8 @@ function loadDashboardData() {
 }
 
 function updateMonthlySummary() {
-    const income = appData.transactions.filter(t => t.isIncome).reduce((sum, t) => sum + t.amount, 0);
-    const expenses = Math.abs(appData.transactions.filter(t => !t.isIncome).reduce((sum, t) => sum + t.amount, 0));
+    const income = appData.transactions.filter(t => t.amount > 0).reduce((sum, t) => sum + t.amount, 0);
+    const expenses = Math.abs(appData.transactions.filter(t => t.amount < 0).reduce((sum, t) => sum + t.amount, 0));
     const balance = income - expenses;
 
     document.getElementById('income').textContent = formatCurrency(income);
@@ -212,13 +212,18 @@ function loadTransactions(transactions = appData.transactions) {
     transactionTableBody.innerHTML = '';
 
     transactions.forEach(transaction => {
+        const category = appData.categories.find(cat => cat.id === transaction.catId) || { name: 'Categoria sconosciuta' };
+        const isIncome = transaction.amount > 0; // Determiniamo il tipo basandoci sull'importo
         const row = document.createElement('tr');
         row.innerHTML = `
             <td class="px-6 py-4 whitespace-nowrap">${transaction.date}</td>
             <td class="px-6 py-4">${transaction.description}</td>
-            <td class="px-6 py-4">${formatCurrency(transaction.amount)}</td>
-            <td class="px-6 py-4 ${transaction.isIncome ? 'text-green-600' : 'text-red-600'}">${transaction.isIncome ? 'Entrata' : 'Uscita'}</td>
-            <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+            <td class="px-6 py-4">${category.name}</td>
+            <td class="px-6 py-4">${formatCurrency(Math.abs(transaction.amount))}</td>
+            <td class="px-6 py-4 ${isIncome ? 'text-green-600' : 'text-red-600'}">
+                ${isIncome ? 'Entrata' : 'Uscita'}
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                 <button class="text-indigo-600 hover:text-indigo-900 mr-2 edit-transaction" data-transaction-id="${transaction.id}">Modifica</button>
                 <button class="text-red-600 hover:text-red-900 delete-transaction" data-transaction-id="${transaction.id}">Elimina</button>
             </td>
@@ -272,15 +277,27 @@ function getCategoryName(catId) {
 
 async function handleNewTransaction(e) {
     e.preventDefault();
+    console.log("Inizio handleNewTransaction");
+
     const form = e.target;
+    console.log("Form elements:", form.elements);
+
+    const amount = Math.abs(parseFloat(form.amount.value));
+    console.log("Amount parsed:", amount);
+
+    const isIncome = form.transactionType.checked;
+    console.log("Is income (checkbox checked):", isIncome);
+
     const newTransaction = {
         description: form.description.value,
-        amount: parseFloat(form.amount.value),
+        amount: isIncome ? amount : -amount,
         date: form.date.value,
-        isIncome: form.transactionType.checked
+        catId: parseInt(form.category.value),
     };
+    console.log("New transaction object:", newTransaction);
 
     try {
+        console.log("Sending POST request to /movs");
         const response = await fetch('/movs', {
             method: 'POST',
             headers: {
@@ -288,15 +305,44 @@ async function handleNewTransaction(e) {
             },
             body: JSON.stringify(newTransaction),
         });
-        if (!response.ok) throw new Error('Errore nella creazione della transazione');
+        console.log("Response status:", response.status);
+
+        if (!response.ok) {
+            const errorText = await response.text();
+            console.error("Error response:", errorText);
+            throw new Error('Errore nella creazione della transazione');
+        }
+
+        const responseText = await response.text();
+        console.log("Response text:", responseText);
+
+        if (responseText) {
+            try {
+                const responseData = JSON.parse(responseText);
+                console.log("Response data:", responseData);
+            } catch (jsonError) {
+                console.error("Error parsing JSON:", jsonError);
+            }
+        } else {
+            console.log("Empty response from server");
+        }
 
         await loadData();
+        console.log("Data reloaded");
+
         loadDashboardData();
+        console.log("Dashboard data loaded");
+
         loadTransactions();
+        console.log("Transactions loaded");
+
         form.reset();
+        console.log("Form reset");
     } catch (error) {
         console.error('Errore:', error);
     }
+
+    console.log("Fine handleNewTransaction");
 }
 
 async function handleNewCategory(e) {
@@ -374,7 +420,8 @@ function setupEventListeners() {
 }
 
 function formatCurrency(amount) {
-    return '€' + Math.abs(amount).toFixed(2);
+    const absAmount = Math.abs(amount);
+    return amount < 0 ? `-€${absAmount.toFixed(2)}` : `€${absAmount.toFixed(2)}`;
 }
 
 function getMonthName(monthIndex) {
@@ -644,3 +691,15 @@ function exportToCSV() {
 }
 
 // Queste funzioni possono essere chiamate secondo necessità o aggiunte all'interfaccia utente
+
+document.addEventListener('DOMContentLoaded', function() {
+    const newTransactionForm = document.getElementById('newTransactionForm');
+    if (newTransactionForm) {
+        newTransactionForm.addEventListener('submit', handleNewTransaction);
+        console.log("Event listener added to newTransactionForm");
+    } else {
+        console.error("newTransactionForm not found in the DOM");
+    }
+
+    // ... altro codice di inizializzazione ...
+});

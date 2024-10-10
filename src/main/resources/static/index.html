@@ -84,10 +84,11 @@
         <h3 class="text-lg font-medium leading-6 text-gray-900 mb-4">Gestione categorie</h3>
         <form id="newCategoryForm" class="mb-4">
             <div class="flex flex-col space-y-2 sm:flex-row sm:space-y-0 sm:space-x-2">
-                <input type="text" id="newCategoryName" placeholder="Nome categoria" required class="flex-grow rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
-                <select id="newCategoryType" required class="rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
-                    <option value="expense">Spesa</option>
-                    <option value="income">Entrata</option>
+                <input type="text" id="newCategoryName" name="newCategoryName" placeholder="Nome categoria" required class="flex-grow rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
+                <select id="newCategoryType" name="newCategoryType" required class="rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
+                    <option value="1">Spesa</option>
+                    <option value="2">Entrata</option>
+                    <option value="3">Entrambi</option>
                 </select>
                 <button type="submit" class="inline-flex justify-center items-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-indigo-600 text-base font-medium text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:text-sm">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">

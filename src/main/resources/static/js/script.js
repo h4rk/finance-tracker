@@ -1,86 +1,57 @@
-let appData = null;
+let appData = {
+    categories: [],
+    transactions: [],
+    catTypes: [],
+    monthlySummary: { income: 0, expenses: 0, balance: 0 }
+};
 let trendChart = null;
 
 document.addEventListener('DOMContentLoaded', async function() {
-  try {
-      await loadData();
-      if (appData) {
-          loadDashboardData();
-          loadCategories();
-          loadTransactions();
-          setupEventListeners();
-      } else {
-          throw new Error('Impossibile inizializzare appData');
-      }
-  } catch (error) {
-      console.error('Errore durante l\'inizializzazione:', error);
-      console.error('Stack trace:', error.stack);
-  }
-});
-
-document.addEventListener('DOMContentLoaded', function() {
-    const transactionTypeToggle = document.getElementById('transactionType');
-    
-    transactionTypeToggle.addEventListener('change', function() {
-        const leftLabel = this.parentNode.previousElementSibling;
-        const rightLabel = this.parentNode.nextElementSibling;
-        
-        if (this.checked) {
-            leftLabel.classList.remove('font-bold');
-            rightLabel.classList.add('font-bold');
+    try {
+        await loadData();
+        if (appData) {
+            loadDashboardData();
+            loadCategories();
+            loadTransactions();
+            setupEventListeners();
         } else {
-            leftLabel.classList.add('font-bold');
-            rightLabel.classList.remove('font-bold');
+            throw new Error('Impossibile inizializzare appData');
         }
-    });
+    } catch (error) {
+        console.error('Errore durante l\'inizializzazione:', error);
+        console.error('Stack trace:', error.stack);
+    }
 });
-
-function loadDataSync() {
-  const xhr = new XMLHttpRequest();
-  xhr.open('GET', '../data/data.json', false);  // false makes the request synchronous
-  xhr.send(null);
-
-  if (xhr.status === 200) {
-      appData = JSON.parse(xhr.responseText);
-      console.log('Dati caricati sincronamente:', appData);
-  } else {
-      console.error('Errore nel caricamento sincrono dei dati:', xhr.status, xhr.statusText);
-  }
-}
 
 async function loadData() {
-  try {
-      const savedData = localStorage.getItem('financeTrackerData');
-      if (savedData) {
-          appData = JSON.parse(savedData);
-          console.log('Dati caricati dal localStorage');
-      } else {
-          console.log('Tentativo di caricamento del file JSON...');
-          const response = await fetch('./data/data.json');
-          if (!response.ok) {
-              throw new Error(`HTTP error! status: ${response.status}`);
-          }
-          appData = await response.json();
-          console.log('Dati caricati dal file JSON');
-      }
-  } catch (error) {
-      console.error('Errore dettagliato nel caricamento dei dati:', error);
-      console.error('Stack trace:', error.stack);
-      // Inizializza appData con dati di default se il caricamento fallisce
-      appData = {
-          monthlySummary: { income: 0, expenses: 0, balance: 0 },
-          categories: [],
-          transactions: []
-      };
-  } finally {
-      console.log('Stato finale di appData:', appData);
-  }
-  setupBudgetModal();
-  setupEventListeners();
-}
+    try {
+        // Carica le categorie
+        const categoriesResponse = await fetch('/cats');
+        if (!categoriesResponse.ok) {
+            throw new Error(`HTTP error! status: ${categoriesResponse.status}`);
+        }
+        appData.categories = await categoriesResponse.json();
+        console.log('Categorie caricate:', appData.categories);
 
-function saveData() {
-  localStorage.setItem('financeTrackerData', JSON.stringify(appData));
+        // Carica i movimenti
+        const movsResponse = await fetch('/movs');
+        if (!movsResponse.ok) {
+            throw new Error(`HTTP error! status: ${movsResponse.status}`);
+        }
+        appData.transactions = await movsResponse.json();
+        console.log('Movimenti caricati:', appData.transactions);
+
+        // Carica i tipi di categoria
+        await loadCatTypes();
+
+        console.log('Dati caricati dagli endpoint');
+    } catch (error) {
+        console.error('Errore dettagliato nel caricamento dei dati:', error);
+        console.error('Stack trace:', error.stack);
+    } finally {
+        console.log('Stato finale di appData:', appData);
+    }
+    setupBudgetModal();
 }
 
 function loadDashboardData() {
@@ -161,6 +132,17 @@ function updateTrendChart() {
     });
 }
 
+function updateTransactionTypeLabel() {
+    const transactionType = document.getElementById('transactionType');
+    const label = document.querySelector('label[for="amount"]');
+    if (transactionType.checked) {
+        label.textContent = 'Importo (Entrata):';
+    } else {
+        label.textContent = 'Importo (Uscita):';
+    }
+}
+
+
 function updateBudgetProgress() {
     const budgetProgressBars = document.getElementById('budgetProgressBars');
     budgetProgressBars.innerHTML = '';
@@ -168,7 +150,7 @@ function updateBudgetProgress() {
     appData.categories.forEach(category => {
         if (category.budget) {
             const spent = appData.transactions
-                .filter(t => t.category === category.name && t.amount < 0)
+                .filter(t => t.catId === category.catId && !t.isIncome)
                 .reduce((sum, t) => sum + Math.abs(t.amount), 0);
             const budget = category.budget;
             const percentage = Math.min((spent / budget) * 100, 100);
@@ -179,7 +161,7 @@ function updateBudgetProgress() {
                         <span class="text-sm font-medium text-gray-700">${category.name}</span>
                         <div>
                             <span class="text-sm font-medium text-gray-700">${formatCurrency(spent)} / ${formatCurrency(budget)}</span>
-                            <button class="ml-2 text-red-600 hover:text-red-800" onclick="removeBudget('${category.name}')">
+                            <button class="ml-2 text-red-600 hover:text-red-800" onclick="removeBudget(${category.catId})">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
                                 </svg>
@@ -197,56 +179,230 @@ function updateBudgetProgress() {
 }
 
 function loadCategories() {
-    const categoryList = document.getElementById('categoryList');
     const categorySelect = document.getElementById('category');
-
-    categoryList.innerHTML = '';
+    const categoryList = document.getElementById('categoryList');
+    
     categorySelect.innerHTML = '<option value="">Seleziona categoria</option>';
+    categoryList.innerHTML = '';
 
     appData.categories.forEach(category => {
-        categoryList.innerHTML += `
-            <li class="py-3 flex justify-between items-center">
-                <span class="text-gray-700">${category.name} (${category.type === 'income' ? 'Entrata' : 'Spesa'})</span>
-                <button class="text-red-600 hover:text-red-800 delete-category" data-category="${category.name}">
-                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-                        <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd"></path>
-                    </svg>
-                </button>
-            </li>
+        // Popola il select delle categorie
+        const option = document.createElement('option');
+        option.value = category.id; // Usa 'id' invece di 'catId'
+        option.textContent = category.name;
+        categorySelect.appendChild(option);
+
+        // Popola la lista delle categorie
+        const li = document.createElement('li');
+        li.className = 'py-2 flex justify-between items-center';
+        li.innerHTML = `
+            <span>${category.name}</span>
+            <button class="delete-category text-red-600 hover:text-red-800" data-category-id="${category.id}">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                </svg>
+            </button>
         `;
-        categorySelect.innerHTML += `<option value="${category.name}">${category.name}</option>`;
+        categoryList.appendChild(li);
     });
 }
 
-function loadTransactions() {
+function loadTransactions(transactions = appData.transactions) {
     const transactionTableBody = document.querySelector('#transactionTable tbody');
     transactionTableBody.innerHTML = '';
 
-    appData.transactions.forEach(transaction => {
-        const row = `
-            <tr>
-                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${transaction.date}</td>
-                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${transaction.description}</td>
-                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${transaction.category}</td>
-                <td class="px-6 py-4 whitespace-nowrap text-sm ${transaction.amount > 0 ? 'text-green-600' : 'text-red-600'}">
-                    ${formatCurrency(Math.abs(transaction.amount))}
-                </td>
-                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                    <button class="text-indigo-600 hover:text-indigo-900 mr-2 edit-transaction" data-id="${transaction.id}">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
-                        </svg>
-                    </button>
-                    <button class="text-red-600 hover:text-red-900 delete-transaction" data-id="${transaction.id}">
-                        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-                            <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd"></path>
-                        </svg>
-                    </button>
-                </td>
-            </tr>
+    transactions.forEach(transaction => {
+        const category = appData.categories.find(cat => cat.id === transaction.catId) || { name: 'Categoria sconosciuta' };
+        const isIncome = transaction.amount > 0; // Determiniamo il tipo basandoci sull'importo
+        const row = document.createElement('tr');
+        row.innerHTML = `
+            <td class="px-6 py-4 whitespace-nowrap">${transaction.date}</td>
+            <td class="px-6 py-4">${transaction.description}</td>
+            <td class="px-6 py-4">${category.name}</td>
+            <td class="px-6 py-4">${formatCurrency(Math.abs(transaction.amount))}</td>
+            <td class="px-6 py-4 ${isIncome ? 'text-green-600' : 'text-red-600'}">
+                ${isIncome ? 'Entrata' : 'Uscita'}
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                <button class="text-indigo-600 hover:text-indigo-900 mr-2 edit-transaction" data-transaction-id="${transaction.id}">Modifica</button>
+                <button class="text-red-600 hover:text-red-900 delete-transaction" data-transaction-id="${transaction.id}">Elimina</button>
+            </td>
         `;
-        transactionTableBody.innerHTML += row;
+        transactionTableBody.appendChild(row);
     });
+}
+
+
+function filterTransactions() {
+    const searchTerm = document.getElementById('transactionSearch').value.toLowerCase();
+    const filterType = document.getElementById('transactionFilter').value;
+    const filteredTransactions = appData.transactions.filter(transaction => {
+        const matchesSearch = transaction.description.toLowerCase().includes(searchTerm);
+        const matchesFilter = filterType === 'all' || 
+                              (filterType === 'income' && transaction.isIncome) || 
+                              (filterType === 'expense' && !transaction.isIncome);
+        return matchesSearch && matchesFilter;
+    });
+    loadTransactions(filteredTransactions);
+}
+
+
+async function loadCatTypes() {
+    try {
+        const response = await fetch('/catTypes');
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        appData.catTypes = await response.json();
+        console.log('Tipi di categoria caricati:', appData.catTypes);
+        
+        const catTypeSelect = document.getElementById('newCategoryType');
+        catTypeSelect.innerHTML = '';
+        appData.catTypes.forEach(type => {
+            const option = document.createElement('option');
+            option.value = type.id;
+            option.textContent = type.name;
+            catTypeSelect.appendChild(option);
+        });
+    } catch (error) {
+        console.error('Errore nel caricamento dei tipi di categoria:', error);
+    }
+}
+
+
+function getCategoryName(catId) {
+    const category = appData.categories.find(cat => cat.id === catId);
+    return category ? category.name : 'Categoria sconosciuta';
+}
+
+async function handleNewTransaction(e) {
+    e.preventDefault();
+    console.log("Inizio handleNewTransaction");
+
+    const form = e.target;
+    console.log("Form elements:", form.elements);
+
+    const amount = Math.abs(parseFloat(form.amount.value));
+    console.log("Amount parsed:", amount);
+
+    const isIncome = form.transactionType.checked;
+    console.log("Is income (checkbox checked):", isIncome);
+
+    const newTransaction = {
+        description: form.description.value,
+        amount: isIncome ? amount : -amount,
+        date: form.date.value,
+        catId: parseInt(form.category.value),
+    };
+    console.log("New transaction object:", newTransaction);
+
+    try {
+        console.log("Sending POST request to /movs");
+        const response = await fetch('/movs', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(newTransaction),
+        });
+        console.log("Response status:", response.status);
+
+        if (!response.ok) {
+            const errorText = await response.text();
+            console.error("Error response:", errorText);
+            throw new Error('Errore nella creazione della transazione');
+        }
+
+        const responseText = await response.text();
+        console.log("Response text:", responseText);
+
+        if (responseText) {
+            try {
+                const responseData = JSON.parse(responseText);
+                console.log("Response data:", responseData);
+            } catch (jsonError) {
+                console.error("Error parsing JSON:", jsonError);
+            }
+        } else {
+            console.log("Empty response from server");
+        }
+
+        await loadData();
+        console.log("Data reloaded");
+
+        loadDashboardData();
+        console.log("Dashboard data loaded");
+
+        loadTransactions();
+        console.log("Transactions loaded");
+
+        form.reset();
+        console.log("Form reset");
+    } catch (error) {
+        console.error('Errore:', error);
+    }
+
+    console.log("Fine handleNewTransaction");
+}
+
+async function handleNewCategory(e) {
+    e.preventDefault();
+    const form = e.target;
+    const newCategory = {
+        name: form.newCategoryName.value,
+        description: form.newCategoryDescription ? form.newCategoryDescription.value : '',
+        type: parseInt(form.newCategoryType.value)
+    };
+
+    try {
+        const response = await fetch('/cats', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(newCategory),
+        });
+        if (!response.ok) throw new Error('Errore nella creazione della categoria');
+
+        await loadData();
+        loadCategories();
+        form.reset();
+    } catch (error) {
+        console.error('Errore:', error);
+    }
+}
+
+async function handleCategoryDelete(e) {
+    if (e.target.closest('.delete-category')) {
+        const categoryId = e.target.closest('.delete-category').dataset.categoryId;
+        try {
+            const response = await fetch(`/cats/${categoryId}`, {
+                method: 'DELETE',
+            });
+            if (!response.ok) throw new Error('Errore nell\'eliminazione della categoria');
+
+            await loadData();
+            loadCategories();
+            updateBudgetProgress();
+        } catch (error) {
+            console.error('Errore:', error);
+        }
+    }
+}
+
+async function deleteTransaction(transactionId) {
+    try {
+        const response = await fetch(`/movs/${transactionId}`, {
+            method: 'DELETE',
+        });
+        if (!response.ok) throw new Error('Errore nell\'eliminazione della transazione');
+
+        await loadData();
+        loadDashboardData();
+        loadTransactions();
+    } catch (error) {
+        console.error('Errore:', error);
+    }
 }
 
 function setupEventListeners() {
@@ -263,139 +419,9 @@ function setupEventListeners() {
     document.getElementById('newBudgetForm').addEventListener('submit', handleNewBudget);
 }
 
-function handleNewTransaction(e) {
-    e.preventDefault();
-    const form = e.target;
-    const editId = form.querySelector('button[type="submit"]').dataset.editId;
-    
-    const transactionData = {
-        date: form.date.value,
-        description: form.description.value,
-        category: form.category.value,
-        amount: form.transactionType.checked ? parseFloat(form.amount.value) : -parseFloat(form.amount.value)
-    };
-
-    if (editId) {
-        // Aggiornamento
-        const index = appData.transactions.findIndex(t => t.id === parseInt(editId));
-        if (index !== -1) {
-            appData.transactions[index] = { ...appData.transactions[index], ...transactionData };
-        }
-        form.querySelector('button[type="submit"]').textContent = 'Inserisci';
-        form.querySelector('button[type="submit"]').dataset.editId = '';
-    } else {
-        // Nuova transazione
-        transactionData.id = Date.now();
-        appData.transactions.push(transactionData);
-    }
-
-    loadDashboardData();
-    loadTransactions();
-    saveData();
-    form.reset();
-}
-
-function handleNewCategory(e) {
-    e.preventDefault();
-    const form = e.target;
-    const newCategory = {
-        name: form.newCategoryName.value,
-        type: form.newCategoryType.value,
-        budget: 0
-    };
-    appData.categories.push(newCategory);
-    loadCategories();
-    updateBudgetProgress();
-    form.reset();
-    saveData();
-}
-
-function updateTransactionTypeLabel() {
-    const transactionType = document.getElementById('transactionType');
-    const leftLabel = transactionType.parentNode.previousElementSibling;
-    const rightLabel = transactionType.parentNode.nextElementSibling;
-    
-    if (transactionType.checked) {
-        leftLabel.classList.remove('font-bold');
-        rightLabel.classList.add('font-bold');
-    } else {
-        leftLabel.classList.add('font-bold');
-        rightLabel.classList.remove('font-bold');
-    }
-}
-
-document.addEventListener('DOMContentLoaded', function() {
-    const transactionType = document.getElementById('transactionType');
-    if (transactionType) {
-        transactionType.addEventListener('change', updateTransactionTypeLabel);
-        // Inizializza l'etichetta al caricamento della pagina
-        updateTransactionTypeLabel();
-    } else {
-        console.error('Elemento transactionType non trovato');
-    }
-});
-
-function filterTransactions() {
-    const searchTerm = document.getElementById('transactionSearch').value.toLowerCase();
-    const filterType = document.getElementById('transactionFilter').value;
-    const rows = document.querySelectorAll('#transactionTable tbody tr');
-
-    rows.forEach(row => {
-        const type = parseFloat(row.querySelector('td:nth-child(4)').textContent) > 0 ? 'income' : 'expense';
-        const matchesSearch = Array.from(row.children).some(cell => cell.textContent.toLowerCase().includes(searchTerm));
-        const matchesFilter = filterType === 'all' || type === filterType;
-
-        row.classList.toggle('hidden', !(matchesSearch && matchesFilter));
-    });
-}
-
-function handleCategoryDelete(e) {
-    if (e.target.closest('.delete-category')) {
-        const categoryName = e.target.closest('.delete-category').dataset.category;
-        appData.categories = appData.categories.filter(c => c.name !== categoryName);
-        loadCategories();
-        updateBudgetProgress();
-        saveData();
-    }
-}
-
-function handleTransactionAction(e) {
-    const actionButton = e.target.closest('.edit-transaction, .delete-transaction');
-    if (actionButton) {
-        const transactionId = parseInt(actionButton.dataset.id);
-        if (actionButton.classList.contains('edit-transaction')) {
-            editTransaction(transactionId);
-        } else if (actionButton.classList.contains('delete-transaction')) {
-            deleteTransaction(transactionId);
-        }
-    }
-}
-
-function editTransaction(transactionId) {
-    const transaction = appData.transactions.find(t => t.id === transactionId);
-    if (transaction) {
-        document.getElementById('transactionType').checked = transaction.amount > 0;
-        document.getElementById('amount').value = Math.abs(transaction.amount);
-        document.getElementById('description').value = transaction.description;
-        document.getElementById('category').value = transaction.category;
-        document.getElementById('date').value = transaction.date;
-        
-        // Cambia il pulsante "Inserisci" in "Aggiorna"
-        const submitButton = document.querySelector('#newTransactionForm button[type="submit"]');
-        submitButton.textContent = 'Aggiorna';
-        submitButton.dataset.editId = transactionId;
-    }
-}
-
-function deleteTransaction(transactionId) {
-    appData.transactions = appData.transactions.filter(t => t.id !== transactionId);
-    loadDashboardData();
-    loadTransactions();
-    saveData();
-}
-
 function formatCurrency(amount) {
-    return '€' + Math.abs(amount).toFixed(2);
+    const absAmount = Math.abs(amount);
+    return amount < 0 ? `-€${absAmount.toFixed(2)}` : `€${absAmount.toFixed(2)}`;
 }
 
 function getMonthName(monthIndex) {
@@ -422,6 +448,18 @@ function updateTransactionTypeColors() {
         submitButton.classList.add('bg-red-600', 'hover:bg-red-700', 'focus:ring-red-500');
     }
 }
+
+function handleTransactionAction(e) {
+    if (e.target.classList.contains('edit-transaction')) {
+        const transactionId = e.target.dataset.transactionId;
+        // Implementa la logica per modificare la transazione
+        console.log('Modifica transazione:', transactionId);
+    } else if (e.target.classList.contains('delete-transaction')) {
+        const transactionId = e.target.dataset.transactionId;
+        deleteTransaction(transactionId);
+    }
+}
+
 
 document.addEventListener('DOMContentLoaded', function() {
     const transactionType = document.getElementById('transactionType');
@@ -495,20 +533,11 @@ function loadCategoriesForBudget() {
     categorySelect.innerHTML = '<option value="">Seleziona categoria</option>';
     
     appData.categories.forEach(category => {
-        if (category.type === 'expense') {
-            const option = document.createElement('option');
-            option.value = category.name;
-            option.textContent = category.name;
-            if (category.budget) {
-                option.textContent += ` (Budget attuale: ${formatCurrency(category.budget)})`;
-            }
-            categorySelect.appendChild(option);
-        }
+        const option = document.createElement('option');
+        option.value = category.id; // Usa 'id' invece di 'catId'
+        option.textContent = category.name;
+        categorySelect.appendChild(option);
     });
-
-    if (categorySelect.options.length === 1) {
-        categorySelect.innerHTML += '<option value="" disabled>Nessuna categoria di spesa disponibile</option>';
-    }
 }
 
 function handleNewBudget(e) {
@@ -521,7 +550,6 @@ function handleNewBudget(e) {
     if (category) {
         category.budget = budgetAmount;
         updateBudgetProgress();
-        saveData();
         hideBudgetModal();
         // Aggiorna la lista delle categorie nel form principale
         loadCategories();
@@ -536,7 +564,6 @@ function removeBudget(categoryName) {
         if (confirm(`Sei sicuro di voler rimuovere il budget per la categoria "${categoryName}"?`)) {
             delete category.budget;
             updateBudgetProgress();
-            saveData();
             // Aggiorna la lista delle categorie nel form principale
             loadCategories();
         }
@@ -547,3 +574,132 @@ function removeBudget(categoryName) {
 
 // Aggiungi questa riga alla fine del file
 window.removeBudget = removeBudget;
+
+// Funzioni di test per gli endpoint
+
+async function testGetCategories() {
+    const response = await fetch('/cats');
+    const data = await response.json();
+    console.log('Categorie:', data);
+}
+
+async function testCreateCategory() {
+    const newCategory = {
+        name: "Test Category",
+        description: "Test Description",
+        type: 2 // Assumi che 2 sia l'ID per il tipo "Both"
+    };
+    const response = await fetch('/cats', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(newCategory),
+    });
+    console.log('Categoria creata:', response.ok);
+}
+
+async function testGetMovements() {
+    const response = await fetch('/movs');
+    const data = await response.json();
+    console.log('Movimenti:', data);
+}
+
+async function testCreateMovement() {
+    const newMovement = {
+        date: "2023-05-15",
+        description: "Test Movement",
+        amount: 100.00,
+        isIncome: true
+    };
+    const response = await fetch('/movs', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(newMovement),
+    });
+    console.log('Movimento creato:', response.ok);
+}
+
+// Puoi chiamare queste funzioni dalla console del browser per testare gli endpoint
+// Ad esempio: testGetCategories()
+
+// Funzione per aggiornare un budget esistente
+
+
+// async function updateBudget(categoryId, newBudgetAmount) {
+//     try {
+//         const response = await fetch(`/cats/${categoryId}`, {
+//             method: 'PUT',
+//             headers: {
+//                 'Content-Type': 'application/json',
+//             },
+//             body: JSON.stringify({ budget: newBudgetAmount }),
+//         });
+//         if (!response.ok) throw new Error('Errore nell\'aggiornamento del budget');
+//         console.log('Budget aggiornato con successo');
+//         await loadData();
+//         updateBudgetProgress();
+//     } catch (error) {
+//         console.error('Errore nell\'aggiornamento del budget:', error);
+//     }
+// }
+
+// Funzione per ottenere le statistiche mensili
+function getMonthlyStats(year, month) {
+    const startDate = new Date(year, month - 1, 1);
+    const endDate = new Date(year, month, 0);
+    
+    const monthTransactions = appData.transactions.filter(t => {
+        const tDate = new Date(t.date);
+        return tDate >= startDate && tDate <= endDate;
+    });
+
+    const income = monthTransactions.filter(t => t.isIncome).reduce((sum, t) => sum + t.amount, 0);
+    const expenses = monthTransactions.filter(t => !t.isIncome).reduce((sum, t) => sum + Math.abs(t.amount), 0);
+
+    return {
+        income,
+        expenses,
+        balance: income - expenses
+    };
+}
+
+// Funzione per esportare i dati in formato CSV
+function exportToCSV() {
+    let csvContent = "data:text/csv;charset=utf-8,";
+    csvContent += "Data,Descrizione,Categoria,Importo,Tipo\n";
+
+    appData.transactions.forEach(t => {
+        const row = [
+            t.date,
+            t.description,
+            getCategoryName(t.catId),
+            t.amount,
+            t.isIncome ? "Entrata" : "Uscita"
+        ].join(",");
+        csvContent += row + "\n";
+    });
+
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", "finance_data.csv");
+    document.body.appendChild(link);
+    link.click();
+}
+
+// Queste funzioni possono essere chiamate secondo necessità o aggiunte all'interfaccia utente
+
+document.addEventListener('DOMContentLoaded', function() {
+    const newTransactionForm = document.getElementById('newTransactionForm');
+    if (newTransactionForm) {
+        newTransactionForm.addEventListener('submit', handleNewTransaction);
+        console.log("Event listener added to newTransactionForm");
+    } else {
+        console.error("newTransactionForm not found in the DOM");
+    }
+
+    // ... altro codice di inizializzazione ...
+});

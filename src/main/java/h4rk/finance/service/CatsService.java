@@ -6,6 +6,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import h4rk.finance.dto.Cat;
+import h4rk.finance.dto.CatType;
+import h4rk.finance.repository.CatTypeRepository;
 import h4rk.finance.repository.CatsRepository;
 import lombok.extern.slf4j.Slf4j;
 
@@ -15,6 +17,10 @@ public class CatsService {
 
     @Autowired
     private CatsRepository catsRepository;
+
+	@Autowired
+	private CatTypeRepository catTypeRepository;
+
     public List<Cat> getCats() {
         log.info("Executing getCats()...");
         try {
@@ -46,4 +52,16 @@ public class CatsService {
             throw e;
         }
     }
+
+	public List<CatType> getCatTypes() {
+		log.info("Executing getCatTypes()...");
+		try {
+			List<CatType> catTypes = catTypeRepository.getCatTypes();
+			log.debug("getCatTypes() returned: [{}]", catTypes);
+			return catTypes;
+		} catch (Exception e) {
+			log.error("Error executing getCatTypes(): [{}]", e.getMessage());
+			throw e;
+		}
+	}
 }

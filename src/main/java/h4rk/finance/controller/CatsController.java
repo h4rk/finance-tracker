@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import h4rk.finance.dto.Cat;
+import h4rk.finance.dto.CatType;
 import h4rk.finance.service.CatsService;
 
 @RestController
@@ -37,4 +38,10 @@ public class CatsController {
         cService.deleteCat(id);
         return ResponseEntity.ok().build();
     }
+
+	@GetMapping("/catTypes")
+	public ResponseEntity<List<CatType>> getCatTypes() {
+		List<CatType> catTypes = cService.getCatTypes();
+		return ResponseEntity.ok(catTypes);
+	}
 }

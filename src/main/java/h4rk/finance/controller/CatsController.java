@@ -3,6 +3,7 @@ package h4rk.finance.controller;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -30,7 +31,7 @@ public class CatsController {
     @PostMapping("/cats")
     public ResponseEntity<?> postCategories(@RequestBody Cat cat) {
         cService.postCat(cat);
-        return ResponseEntity.ok().build();
+        return new ResponseEntity<Object>(HttpStatus.CREATED);
     }
 
     @DeleteMapping("/cats/{id}")

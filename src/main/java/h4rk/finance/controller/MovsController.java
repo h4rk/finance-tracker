@@ -48,11 +48,5 @@ public class MovsController {
 		mService.deleteMovs(id);
 		return ResponseEntity.ok().build();
 	}
-
-	@GetMapping("/tables")//TODO remove this method
-	public ResponseEntity<List<String>> getAllTables() {
-		List<String> tables = mService.getAllTables();
-		return ResponseEntity.ok(tables);
-	}
 }
 

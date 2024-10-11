@@ -9,6 +9,10 @@ import java.math.BigInteger;
 
 import h4rk.finance.dto.Mov;
 import h4rk.finance.dto.MovWithCat;
+import h4rk.finance.exceptions.DeleteMovException;
+import h4rk.finance.exceptions.GetMovByIdException;
+import h4rk.finance.exceptions.GetMovsException;
+import h4rk.finance.exceptions.PostMovException;
 import h4rk.finance.repository.MovsRepository;
 import lombok.extern.slf4j.Slf4j;
 
@@ -28,7 +32,7 @@ public class MovsService {
 			return movsRepository.getMovs();
 		} catch (Exception e) {
 			log.error("Error executing getMovs(): [{}]", e.getMessage());
-			throw e;
+			throw new GetMovsException("Error while getting the movements.", e);
 		}
     }
 
@@ -38,7 +42,7 @@ public class MovsService {
 			return movsRepository.getMovById(id);
 		} catch (Exception e) {
 			log.error("Error executing getMovById(): [{}]", e.getMessage());
-			throw e;
+			throw new GetMovByIdException("Error while getting the movement by id.", e);
 		}
 	}
 
@@ -50,7 +54,7 @@ public class MovsService {
 			movCatService.postMovCat(new_id, movWithCat.getCatIds());
 		} catch (Exception e) {
 			log.error("Error executing postMovs(): [{}]", e.getMessage());
-			throw e;
+			throw new PostMovException("Error while posting the movement.", e);
 		}
 	}
 
@@ -60,15 +64,7 @@ public class MovsService {
 			movsRepository.deleteMovs(id);
 		} catch (Exception e) {
 			log.error("Error executing deleteMovs(): [{}]", e.getMessage());
-			throw e;
+			throw new DeleteMovException("Error while deleting the movement.", e);
 		}
-	}
-
-	//TODO remove this method
-	public List<String> getAllTables() {
-		log.info("Executing getAllTables()...");
-		List<String> tables = movsRepository.getAllTables();
-		log.info("Tables: [{}]", tables);
-		return tables;
 	}
 }

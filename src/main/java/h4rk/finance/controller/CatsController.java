@@ -29,9 +29,9 @@ public class CatsController {
     }
 
     @PostMapping("/cats")
-    public ResponseEntity<?> postCategories(@RequestBody Cat cat) {
-        cService.postCat(cat);
-        return new ResponseEntity<Object>(HttpStatus.CREATED);
+    public ResponseEntity<Cat> postCategories(@RequestBody Cat cat) {
+        Cat c = cService.postCat(cat);
+        return new ResponseEntity<Cat>(c, HttpStatus.CREATED);
     }
 
     @DeleteMapping("/cats/{id}")

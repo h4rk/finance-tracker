@@ -37,10 +37,10 @@ public class CatsService {
         }
     }
 
-    public void postCat(Cat cat) {
+    public Cat postCat(Cat cat) {
         log.info("Executing postCat() with cat: [{}]...", cat);
         try {
-            catsRepository.postCat(cat);
+            return catsRepository.postCat(cat);
         } catch (Exception e) {
             log.error("Error executing postCat(): [{}]", e.getMessage());
             throw new PostCatsException("Error while posting the category.", e);

@@ -9,7 +9,7 @@ let trendChart = null;
 document.addEventListener('DOMContentLoaded', async function() {
     try {
         await loadData();
-        if (appData) {
+        if (appState) {
             loadDashboardData();
             loadCategories();
             loadTransactions();

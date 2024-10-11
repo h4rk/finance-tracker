@@ -9,6 +9,7 @@ import java.math.BigInteger;
 
 import h4rk.finance.dto.Mov;
 import h4rk.finance.dto.MovWithCat;
+import h4rk.finance.dto.MovWithFullCat;
 import h4rk.finance.exceptions.DeleteMovException;
 import h4rk.finance.exceptions.GetMovByIdException;
 import h4rk.finance.exceptions.GetMovsException;
@@ -65,6 +66,16 @@ public class MovsService {
 		} catch (Exception e) {
 			log.error("Error executing deleteMovs(): [{}]", e.getMessage());
 			throw new DeleteMovException("Error while deleting the movement.", e);
+		}
+	}
+
+	public List<MovWithFullCat> getAllMovsWithFullCat() {
+		log.info("Executing getAllMovsWithFullCat()...");
+		try {
+			return movsRepository.getAllMovsWithFullCat();
+		} catch (Exception e) {
+			log.error("Error executing getAllMovsWithFullCat(): [{}]", e.getMessage());
+			throw new GetMovsException("Error while getting the movements with full category.", e);
 		}
 	}
 }

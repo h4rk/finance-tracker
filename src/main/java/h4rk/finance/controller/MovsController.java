@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import h4rk.finance.dto.Mov;
 import h4rk.finance.dto.MovWithCat;
+import h4rk.finance.dto.MovWithFullCat;
 import h4rk.finance.service.MovsService;
 
 @RestController
@@ -22,8 +23,8 @@ public class MovsController {
 	private MovsService mService;
 
 	@GetMapping("/movs")
-	public ResponseEntity<List<Mov>> getMovs() {
-		List<Mov> movs = mService.getMovs();
+	public ResponseEntity<List<MovWithFullCat>> getMovs() {
+		List<MovWithFullCat> movs = mService.getAllMovsWithFullCat();
 		return ResponseEntity.ok(movs);
 	}
 
@@ -48,5 +49,6 @@ public class MovsController {
 		mService.deleteMovs(id);
 		return ResponseEntity.ok().build();
 	}
+
 }
 

@@ -11,6 +11,7 @@ import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
 import java.math.BigInteger;
 import h4rk.finance.dto.Mov;
+import h4rk.finance.dto.MovWithFullCat;
 
 @Repository
 public class MovsRepository {
@@ -48,5 +49,19 @@ public class MovsRepository {
 
 	public Mov getMovById(long id) {
 		return jdbcTemplate.queryForObject("SELECT * FROM mov WHERE mov_id = ?", (rs, rowNum) -> new Mov(rs.getLong("mov_id"), rs.getString("description"), rs.getDouble("amount"), rs.getDate("date"), rs.getBoolean("isIncome")), id);
+	}
+
+	public List<MovWithFullCat> getAllMovsWithFullCat() {
+		return jdbcTemplate.query("SELECT mov.mov_id, mov.description, mov.amount, mov.date, mov.isIncome, cat.cat_id, cat.name FROM mov LEFT JOIN mov_cat ON mov.mov_id = mov_cat.mov_id JOIN cat ON mov_cat.cat_id = cat.cat_id", 
+		(rs, rowNum) -> {
+			MovWithFullCat movWithFullCat = new MovWithFullCat();
+			movWithFullCat.setId(rs.getLong("mov_id"));
+			movWithFullCat.setDescription(rs.getString("description"));
+			movWithFullCat.setAmount(rs.getDouble("amount"));
+			movWithFullCat.setDate(rs.getDate("date"));
+			movWithFullCat.setIncome(rs.getBoolean("isIncome"));
+			movWithFullCat.getCatIds().put(rs.getLong("cat_id"), rs.getString("name"));
+			return movWithFullCat;
+		});
 	}
 }

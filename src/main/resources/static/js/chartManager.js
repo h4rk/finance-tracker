@@ -4,70 +4,112 @@ let trendChart = null;
 
 export function updateTrendChart(appData) {
     const ctx = document.getElementById('trendChart').getContext('2d');
-    const selectedPeriod = parseInt(document.getElementById('trendPeriod').value);
-    const { labels, data } = generateChartData(appData, selectedPeriod);
+    const periodSelect = document.getElementById('trendPeriod');
+    const months = parseInt(periodSelect.value);
 
-    if (trendChart) {
-        trendChart.destroy();
+    // Raggruppa le transazioni per mese
+    const monthlyData = groupTransactionsByMonth(appData.transactions, months);
+
+    // Prepara i dati per il grafico
+    const labels = Object.keys(monthlyData).sort();
+    const incomeData = [];
+    const expenseData = [];
+
+    labels.forEach(month => {
+        incomeData.push(monthlyData[month].income);
+        expenseData.push(-monthlyData[month].expense); // Negativo per mostrarlo sotto lo zero
+    });
+
+    // Distruggi il grafico esistente se presente
+    if (window.trendChart instanceof Chart) {
+        window.trendChart.destroy();
     }
 
-    trendChart = new Chart(ctx, {
-        type: 'line',
+    // Crea il nuovo grafico
+    window.trendChart = new Chart(ctx, {
+        type: 'bar',
         data: {
             labels: labels,
-            datasets: [{
-                label: 'Saldo',
-                data: data,
-                borderColor: '#4F46E5',
-                backgroundColor: 'rgba(79, 70, 229, 0.1)',
-                tension: 0.1,
-                fill: true
-            }]
+            datasets: [
+                {
+                    label: 'Entrate',
+                    data: incomeData,
+                    backgroundColor: 'rgba(75, 192, 75, 0.8)', // Verde
+                    borderColor: 'rgba(75, 192, 75, 1)',
+                    borderWidth: 1
+                },
+                {
+                    label: 'Uscite',
+                    data: expenseData,
+                    backgroundColor: 'rgba(255, 99, 132, 0.8)', // Rosso
+                    borderColor: 'rgba(255, 99, 132, 1)',
+                    borderWidth: 1
+                }
+            ]
         },
         options: {
             responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: {
-                    display: false
-                }
-            },
             scales: {
+                x: {
+                    stacked: true,
+                },
                 y: {
                     beginAtZero: true,
-                    grid: {
-                        color: 'rgba(0, 0, 0, 0.1)'
+                    ticks: {
+                        callback: function(value) {
+                            return formatCurrency(value);
+                        }
+                    }
+                }
+            },
+            plugins: {
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            let label = context.dataset.label || '';
+                            if (label) {
+                                label += ': ';
+                            }
+                            if (context.parsed.y !== null) {
+                                label += formatCurrency(context.parsed.y);
+                            }
+                            return label;
+                        }
                     }
                 },
-                x: {
-                    grid: {
-                        display: false
-                    }
+                legend: {
+                    display: true,
+                    position: 'top'
                 }
             }
         }
     });
 }
 
-function generateChartData(appData, selectedPeriod) {
-    const today = new Date();
-    const labels = [];
-    const data = [];
+function groupTransactionsByMonth(transactions, months) {
+    const now = new Date();
+    const monthlyData = {};
 
-    for (let i = selectedPeriod - 1; i >= 0; i--) {
-        const date = new Date(today.getFullYear(), today.getMonth() - i, 1);
-        labels.push(getMonthName(date.getMonth()));
-        
-        const monthTransactions = appData.transactions.filter(t => {
-            const tDate = new Date(t.date);
-            return tDate.getMonth() === date.getMonth() && tDate.getFullYear() === date.getFullYear();
-        });
-        
-        const monthBalance = monthTransactions.reduce((sum, t) => sum + t.amount, 0);
-        data.push(monthBalance);
+    for (let i = 0; i < months; i++) {
+        const date = new Date(now.getFullYear(), now.getMonth() - i, 1);
+        const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+        monthlyData[monthKey] = { income: 0, expense: 0 };
     }
 
-    return { labels, data };
+    transactions.forEach(transaction => {
+        const transactionDate = new Date(transaction.date);
+        const monthKey = `${transactionDate.getFullYear()}-${String(transactionDate.getMonth() + 1).padStart(2, '0')}`;
+        
+        if (monthlyData[monthKey]) {
+            if (transaction.income) {
+                monthlyData[monthKey].income += transaction.amount;
+            } else {
+                monthlyData[monthKey].expense += transaction.amount;
+            }
+        }
+    });
+
+    return monthlyData;
 }
 
 export function updateBudgetProgress(appData) {

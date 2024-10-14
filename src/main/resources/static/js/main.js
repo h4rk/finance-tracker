@@ -17,7 +17,6 @@ let appData = {
 
 async function initializeApp() {
     try {
-        // Load initial data
         await loadData(appData);
 
         // Setup UI components
@@ -35,8 +34,12 @@ async function initializeApp() {
 
         showNotification('Applicazione inizializzata con successo', 'success');
     } catch (error) {
-        console.error('Errore durante l\'inizializzazione:', error);
-        showNotification('Errore durante l\'inizializzazione dell\'applicazione', 'error');
+        console.error('Error during app initialization:', error);
+        if (error.message.includes('Bad Request')) {
+            showNotification('There was an issue with the data request. Please try again later or contact support.', 'error');
+        } else {
+            showNotification('An unexpected error occurred. Please try again later.', 'error');
+        }
     }
 }
 

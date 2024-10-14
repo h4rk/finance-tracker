@@ -16,6 +16,7 @@ export async function loadData(appData) {
         }));
 
         console.log('Data loaded successfully');
+
         return appData;
     } catch (error) {
         console.error('Error loading data:', error);

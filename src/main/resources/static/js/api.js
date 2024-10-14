@@ -17,13 +17,41 @@ export async function fetchTransactions() {
     try {
         const response = await fetch('/movs');
         if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
+            const errorBody = await response.text();
+            console.error('Error response:', errorBody);
+            if (response.status === 400) {
+                throw new Error(`Bad Request: The server couldn't understand the request. Details: ${errorBody}`);
+            } else {
+                throw new Error(`HTTP error! status: ${response.status}, body: ${errorBody}`);
+            }
         }
         return await response.json();
     } catch (error) {
         console.error('Error fetching transactions:', error);
         throw error;
     }
+}
+
+
+
+export async function fetchTransactionsWithCategories() {
+    const response = await fetch('/movs');
+    if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    const transactions = await response.json();
+    
+    // Fetch categories for each transaction
+    const transactionsWithCategories = await Promise.all(transactions.map(async (transaction) => {
+        const catResponse = await fetch(`/movs/${transaction.id}/categories`);
+        if (catResponse.ok) {
+            const categories = await catResponse.json();
+            return { ...transaction, categories };
+        }
+        return transaction;
+    }));
+    
+    return transactionsWithCategories;
 }
 
 // Function to fetch category types from the server

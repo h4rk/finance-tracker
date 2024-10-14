@@ -53,10 +53,10 @@ export function loadTransactions(appData, transactions = appData.transactions) {
         row.innerHTML = `
             <td class="px-6 py-4 whitespace-nowrap">${transaction.date}</td>
             <td class="px-6 py-4">${transaction.description}</td>
-            <td class="px-6 py-4">${transaction.categoryName || getCategoryName(appData, transaction.categoryId) || 'Categoria sconosciuta'}</td>
+            <td class="px-6 py-4">${transaction.categoryName || getCategoryName(appData, transaction.catIds) || 'Categoria sconosciuta'}</td>
             <td class="px-6 py-4">${formatCurrency(Math.abs(transaction.amount))}</td>
-            <td class="px-6 py-4 ${transaction.amount > 0 ? 'text-green-600' : 'text-red-600'}">
-                ${transaction.amount > 0 ? 'Entrata' : 'Uscita'}
+            <td class="px-6 py-4 ${transaction.income ? 'text-green-600' : 'text-red-600'}">
+                ${transaction.income ? 'Entrata' : 'Uscita'}
             </td>
             <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                 <button class="text-indigo-600 hover:text-indigo-900 mr-2 edit-transaction" data-transaction-id="${transaction.id}">Modifica</button>
@@ -65,6 +65,8 @@ export function loadTransactions(appData, transactions = appData.transactions) {
         `;
         transactionTableBody.appendChild(row);
     });
+
+    console.log('Loaded transactions:', transactions);
 }
 
 export function setupEventListeners(appData) {
@@ -88,13 +90,13 @@ export async function handleNewTransaction(e, appData) {
         description: form.description.value,
         amount: amount,
         date: form.date.value,
-        isIncome: isIncome,
-        catId: parseInt(form.category.value)
+        catId: parseInt(form.category.value),
+        income: isIncome
     };
     console.log("New transaction object:", JSON.stringify(transactionData, null, 2));
 
     try {
-        await addTransaction(appData, transactionData);
+        const newTransaction = await addTransaction(appData, transactionData);
         loadDashboardData(appData);
         loadTransactions(appData);
         form.reset();

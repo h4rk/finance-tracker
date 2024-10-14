@@ -25,7 +25,9 @@ export async function fetchTransactions() {
                 throw new Error(`HTTP error! status: ${response.status}, body: ${errorBody}`);
             }
         }
-        return await response.json();
+        const data = await response.json();
+        console.log('Fetched transactions:', data);
+        return data;
     } catch (error) {
         console.error('Error fetching transactions:', error);
         throw error;
@@ -75,7 +77,7 @@ export async function createTransaction(transactionData) {
             description: transactionData.description,
             amount: transactionData.amount,
             date: transactionData.date,
-            isIncome: transactionData.amount > 0,
+            income: transactionData.income,
             catIds: [transactionData.catId]
         };
         console.log('Sending transaction data:', JSON.stringify(payload, null, 2));
@@ -92,8 +94,16 @@ export async function createTransaction(transactionData) {
             console.log('Error response body:', errorText);
             throw new Error(`HTTP error! status: ${response.status}, message: ${errorText}`);
         }
-        // Server returns 200 with empty body for success
-        return { success: true, message: 'Transaction created successfully' };
+        
+        // Check if the response has content before parsing JSON
+        const contentType = response.headers.get("content-type");
+        if (contentType && contentType.indexOf("application/json") !== -1) {
+            const newTransaction = await response.json();
+            return { success: true, id: newTransaction.id, message: 'Transaction created successfully' };
+        } else {
+            // If there's no JSON content, return a success message without an ID
+            return { success: true, message: 'Transaction created successfully' };
+        }
     } catch (error) {
         console.error('Error in createTransaction:', error);
         throw error;

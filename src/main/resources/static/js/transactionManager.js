@@ -1,4 +1,4 @@
-import { addTransaction, removeTransaction, filterTransactions } from './dataManager.js';
+import { addTransaction, removeTransaction, filterTransactions, getCategoryName } from './dataManager.js';
 import { loadTransactions, loadDashboardData } from './uiManager.js';
 import { formatCurrency, formatDate, showNotification } from './utils.js';
 
@@ -59,15 +59,15 @@ export function handleTransactionFilter(appData) {
 }
 
 export function showTransactionDetails(transaction, appData) {
-    const category = appData.categories.find(cat => cat.id === transaction.catId);
+    const category = getCategoryName(appData, transaction.catIds);
     const detailsHtml = `
         <div class="bg-white p-4 rounded-lg shadow">
             <h3 class="text-lg font-semibold mb-2">Dettagli Transazione</h3>
             <p><strong>Data:</strong> ${formatDate(transaction.date)}</p>
             <p><strong>Descrizione:</strong> ${transaction.description}</p>
-            <p><strong>Categoria:</strong> ${category ? category.name : 'N/A'}</p>
+            <p><strong>Categoria:</strong> ${category}</p>
             <p><strong>Importo:</strong> ${formatCurrency(transaction.amount)}</p>
-            <p><strong>Tipo:</strong> ${transaction.amount > 0 ? 'Entrata' : 'Uscita'}</p>
+            <p><strong>Tipo:</strong> ${transaction.income ? 'Entrata' : 'Uscita'}</p>
         </div>
     `;
     
@@ -86,13 +86,13 @@ export function exportTransactions(appData) {
     csvContent += "Data,Descrizione,Categoria,Importo,Tipo\n";
 
     appData.transactions.forEach(t => {
-        const category = appData.categories.find(cat => cat.id === t.catId);
+        const category = getCategoryName(appData, t.catIds);
         const row = [
             formatDate(t.date),
             t.description,
-            category ? category.name : 'N/A',
+            category,
             formatCurrency(t.amount),
-            t.amount > 0 ? "Entrata" : "Uscita"
+            t.income ? "Entrata" : "Uscita"
         ].join(",");
         csvContent += row + "\n";
     });
@@ -115,5 +115,7 @@ function showNotification(message, type) {
         document.body.removeChild(notification);
     }, 3000);
 }
+
+
 
 // Add other transaction-related functions as needed

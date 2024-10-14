@@ -12,7 +12,7 @@ export async function loadData(appData) {
         appData.catTypes = catTypes;
         appData.transactions = transactions.map(transaction => ({
             ...transaction,
-            categoryName: getCategoryName(appData, transaction.catId)
+            categoryName: getCategoryName(appData, transaction.catIds)
         }));
 
         console.log('Data loaded successfully');
@@ -38,10 +38,9 @@ export async function addTransaction(appData, transactionData) {
         const result = await createTransaction(transactionData);
         if (result.success) {
             const newTransaction = {
-                id: Date.now(),
+                id: result.id || Date.now(), // Use the server-provided ID or generate a temporary one
                 ...transactionData,
-                categoryId: transactionData.catId,
-                categoryName: getCategoryName(appData, transactionData.catId)
+                categoryName: getCategoryName(appData, { [transactionData.catId]: '' })
             };
             appData.transactions.push(newTransaction);
             updateMonthlySummary(appData);
@@ -116,7 +115,16 @@ export function filterTransactions(appData, searchTerm, filterType) {
 }
 
 export function getCategoryName(appData, catId) {
-    const category = appData.categories.find(cat => cat.id === catId);
+    if (!catId) return 'Categoria sconosciuta';
+    
+    let categoryId;
+    if (typeof catId === 'object') {
+        categoryId = Object.keys(catId)[0];
+    } else {
+        categoryId = catId;
+    }
+    
+    const category = appData.categories.find(cat => cat.id === parseInt(categoryId));
     return category ? category.name : 'Categoria sconosciuta';
 }
 

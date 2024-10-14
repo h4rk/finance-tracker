@@ -1,6 +1,7 @@
 package h4rk.finance.dto;
 
 import java.sql.Date;
+import java.util.HashMap;
 import java.util.Map;
 
 import lombok.AllArgsConstructor;
@@ -20,5 +21,5 @@ public class MovWithFullCat {
 	private double amount;
 	private Date date;
 	private boolean isIncome;
-	Map<Long, String> catIds;
+	Map<Long, String> catIds = new HashMap<Long, String>();
 }

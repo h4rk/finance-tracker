@@ -12,12 +12,11 @@ export function updateTrendChart(appData) {
 
     // Prepara i dati per il grafico
     const labels = Object.keys(monthlyData).sort();
-    const incomeData = [];
-    const expenseData = [];
+    const deltaData = [];
 
     labels.forEach(month => {
-        incomeData.push(monthlyData[month].income);
-        expenseData.push(-monthlyData[month].expense); // Negativo per mostrarlo sotto lo zero
+        const delta = monthlyData[month].income - monthlyData[month].expense;
+        deltaData.push(delta);
     });
 
     // Distruggi il grafico esistente se presente
@@ -32,17 +31,10 @@ export function updateTrendChart(appData) {
             labels: labels,
             datasets: [
                 {
-                    label: 'Entrate',
-                    data: incomeData,
-                    backgroundColor: 'rgba(75, 192, 75, 0.8)', // Verde
-                    borderColor: 'rgba(75, 192, 75, 1)',
-                    borderWidth: 1
-                },
-                {
-                    label: 'Uscite',
-                    data: expenseData,
-                    backgroundColor: 'rgba(255, 99, 132, 0.8)', // Rosso
-                    borderColor: 'rgba(255, 99, 132, 1)',
+                    label: 'Bilancio mensile',
+                    data: deltaData,
+                    backgroundColor: deltaData.map(value => value >= 0 ? 'rgba(75, 192, 75, 0.8)' : 'rgba(255, 99, 132, 0.8)'),
+                    borderColor: deltaData.map(value => value >= 0 ? 'rgba(75, 192, 75, 1)' : 'rgba(255, 99, 132, 1)'),
                     borderWidth: 1
                 }
             ]
@@ -59,7 +51,21 @@ export function updateTrendChart(appData) {
                         callback: function(value) {
                             return formatCurrency(value);
                         }
-                    }
+                    },
+                    grid: {
+                        color: (context) => {
+                            if (context.tick.value === 0) {
+                                return 'rgba(0, 0, 0, 0.5)'; // Colore della linea dello zero
+                            }
+                            return 'rgba(0, 0, 0, 0.1)'; // Colore delle altre linee della griglia
+                        },
+                        lineWidth: (context) => {
+                            if (context.tick.value === 0) {
+                                return 2; // Spessore della linea dello zero
+                            }
+                            return 1; // Spessore delle altre linee della griglia
+                        },
+                    },
                 }
             },
             plugins: {
@@ -78,8 +84,7 @@ export function updateTrendChart(appData) {
                     }
                 },
                 legend: {
-                    display: true,
-                    position: 'top'
+                    display: false
                 }
             }
         }

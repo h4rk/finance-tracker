@@ -17,10 +17,6 @@ import h4rk.finance.dto.MovWithFullCat;
 public class MovsRepository {
 	@Autowired
 	private JdbcTemplate jdbcTemplate;
-
-	public List<String> getAllTables(){
-		return jdbcTemplate.queryForList("SELECT table_name FROM information_schema.tables WHERE table_schema = 'finance-tracker';", String.class);
-	}
 	
 	public int deleteMovs(long id) {
 		return jdbcTemplate.update("DELETE FROM mov WHERE mov_id = ?", id);

@@ -2,29 +2,50 @@ import { formatCurrency } from './utils.js';
 
 let trendChart = null;
 
-export function updateTrendChart(appData) {
+export async function updateTrendChart() {
     const ctx = document.getElementById('trendChart').getContext('2d');
-    const periodSelect = document.getElementById('trendPeriod');
-    const months = parseInt(periodSelect.value);
 
-    // Raggruppa le transazioni per mese
-    const monthlyData = groupTransactionsByMonth(appData.transactions, months);
+    // Fetch data from the new API
+    const response = await fetch('http://localhost:8080/analytics/yearly');
+    const yearlyData = await response.json();
 
-    // Prepara i dati per il grafico
-    const labels = Object.keys(monthlyData).sort();
+    // Get current date
+    const currentDate = new Date();
+    const currentMonth = currentDate.getMonth();
+    const currentYear = currentDate.getFullYear();
+
+    // Prepare data for the chart
+    const labels = [];
+    const incomeData = [];
+    const expenseData = [];
     const deltaData = [];
 
-    labels.forEach(month => {
-        const delta = monthlyData[month].income - monthlyData[month].expense;
-        deltaData.push(delta);
-    });
+    // Ultimi 12 mesi
+    for (let i = 11; i >= 0; i--) {
+        let month = (currentMonth - i + 12) % 12;
+        let year = currentYear - (month > currentMonth ? 1 : 0);
+        let monthKey = month + 1;
 
-    // Distruggi il grafico esistente se presente
+        labels.push(getMonthName(month) + ' ' + year);
+
+        if (yearlyData[monthKey]) {
+            incomeData.push(yearlyData[monthKey].monthlyIncome);
+            expenseData.push(yearlyData[monthKey].monthlyExpense);
+            deltaData.push(yearlyData[monthKey].monthlyIncome - yearlyData[monthKey].monthlyExpense);
+        } else {
+            // If no data for this month, push zeros
+            incomeData.push(0);
+            expenseData.push(0);
+            deltaData.push(0);
+        }
+    }
+
+    // Destroy existing chart if present
     if (window.trendChart instanceof Chart) {
         window.trendChart.destroy();
     }
 
-    // Crea il nuovo grafico
+    // Create new chart
     window.trendChart = new Chart(ctx, {
         type: 'bar',
         data: {
@@ -33,7 +54,22 @@ export function updateTrendChart(appData) {
                 {
                     label: 'Bilancio mensile',
                     data: deltaData,
-                    backgroundColor: deltaData.map(value => value >= 0 ? 'rgba(75, 192, 75, 0.8)' : 'rgba(255, 99, 132, 0.8)'),
+                    backgroundColor: (context) => {
+                        const chart = context.chart;
+                        const {ctx, chartArea} = chart;
+                        if (!chartArea) {
+                            return null;
+                        }
+                        const gradient = ctx.createLinearGradient(0, chartArea.bottom, 0, chartArea.top);
+                        if (deltaData[context.dataIndex] >= 0) {
+                            gradient.addColorStop(0, 'rgba(75, 192, 75, 0.2)');
+                            gradient.addColorStop(1, 'rgba(75, 192, 75, 0.8)');
+                        } else {
+                            gradient.addColorStop(0, 'rgba(255, 99, 132, 0.2)');
+                            gradient.addColorStop(1, 'rgba(255, 99, 132, 0.8)');
+                        }
+                        return gradient;
+                    },
                     borderColor: deltaData.map(value => value >= 0 ? 'rgba(75, 192, 75, 1)' : 'rgba(255, 99, 132, 1)'),
                     borderWidth: 1
                 }
@@ -41,6 +77,8 @@ export function updateTrendChart(appData) {
         },
         options: {
             responsive: true,
+            maintainAspectRatio: false, // Permette di controllare l'altezza indipendentemente dalla larghezza
+            aspectRatio: 2, // Imposta un rapporto di aspetto di 2:1 (larghezza:altezza)
             scales: {
                 x: {
                     stacked: true,
@@ -55,33 +93,70 @@ export function updateTrendChart(appData) {
                     grid: {
                         color: (context) => {
                             if (context.tick.value === 0) {
-                                return 'rgba(0, 0, 0, 0.5)'; // Colore della linea dello zero
+                                return 'rgba(0, 0, 0, 0.5)';
                             }
-                            return 'rgba(0, 0, 0, 0.1)'; // Colore delle altre linee della griglia
+                            return 'rgba(0, 0, 0, 0.1)';
                         },
                         lineWidth: (context) => {
                             if (context.tick.value === 0) {
-                                return 2; // Spessore della linea dello zero
+                                return 2;
                             }
-                            return 1; // Spessore delle altre linee della griglia
+                            return 1;
                         },
                     },
+                    afterDataLimits: (scale) => {
+                        const absMax = Math.max(Math.abs(scale.max), Math.abs(scale.min));
+                        scale.max = absMax;
+                        scale.min = -absMax;
+                        // Aggiungi un 10% di spazio extra sopra e sotto
+                        const padding = absMax * 0.1;
+                        scale.max += padding;
+                        scale.min -= padding;
+                    }
                 }
+            },
+            hover: {
+                mode: 'nearest',
+                intersect: true,
+                animationDuration: 400
             },
             plugins: {
                 tooltip: {
+                    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+                    titleColor: '#333',
+                    titleFont: {
+                        weight: 'bold',
+                        size: 16
+                    },
+                    bodyColor: '#333',
+                    bodyFont: {
+                        size: 14
+                    },
+                    borderColor: 'rgba(0, 0, 0, 0.1)',
+                    borderWidth: 1,
+                    cornerRadius: 8,
+                    padding: 12,
+                    boxShadow: '0 2px 10px rgba(0,0,0,0.1)',
                     callbacks: {
                         label: function(context) {
-                            let label = context.dataset.label || '';
-                            if (label) {
-                                label += ': ';
-                            }
-                            if (context.parsed.y !== null) {
-                                label += formatCurrency(context.parsed.y);
-                            }
-                            return label;
+                            const index = context.dataIndex;
+                            const income = incomeData[index];
+                            const expense = expenseData[index];
+                            const balance = deltaData[index];
+                            return [
+                                `📈 Entrate: ${formatCurrency(income)}`,
+                                `📉 Uscite: ${formatCurrency(expense)}`,
+                                `💰 Bilancio totale: ${formatCurrency(balance)}`
+                            ];
+                        },
+                        beforeBody: function(context) {
+                            return '─────────────────────';
+                        },
+                        title: function(context) {
+                            return context[0].label; // This will now include the year
                         }
-                    }
+                    },
+                    displayColors: false
                 },
                 legend: {
                     display: false

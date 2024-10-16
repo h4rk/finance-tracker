@@ -2,9 +2,49 @@
     display: none;
 }
 
-
 body {
     font-family: 'Inter', sans-serif;
 }
 
+/* Custom styles for login and registration pages */
+.bg-gradient-to-br {
+    animation: gradientAnimation 10s ease infinite;
+    background-size: 200% 200%;
+}
 
+@keyframes gradientAnimation {
+    0% {
+        background-position: 0% 50%;
+    }
+    50% {
+        background-position: 100% 50%;
+    }
+    100% {
+        background-position: 0% 50%;
+    }
+}
+
+.hover\:scale-105:hover {
+    transition: transform 0.3s ease-in-out;
+}
+
+input:focus {
+    transition: all 0.3s ease-in-out;
+}
+
+button[type="submit"] {
+    transition: all 0.3s ease-in-out;
+}
+
+button[type="submit"]:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.text-indigo-600 {
+    transition: color 0.3s ease-in-out;
+}
+
+.text-indigo-600:hover {
+    color: #4f46e5;
+}

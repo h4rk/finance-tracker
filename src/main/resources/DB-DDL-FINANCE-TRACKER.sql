@@ -2,6 +2,16 @@ DROP TABLE IF EXISTS `finance-tracker`.`mov_cat`;
 DROP TABLE IF EXISTS `finance-tracker`.`mov`;
 DROP TABLE IF EXISTS `finance-tracker`.`cat`;
 DROP TABLE IF EXISTS `finance-tracker`.`cat_type`;
+DROP TABLE IF EXISTS `finance-tracker`.`user`;
+
+CREATE TABLE `finance-tracker`.`user` (
+  `user_id` bigint unsigned NOT NULL AUTO_INCREMENT,
+  `username` varchar(45) NOT NULL,
+  `password` varchar(255) NOT NULL,
+  `role` varchar(45) NOT NULL,
+  PRIMARY KEY (`user_id`),
+  UNIQUE KEY `unique_username` (`username`)
+);
 
 CREATE TABLE `finance-tracker`.`cat_type` (
   `cat_type_id` tinyint unsigned NOT NULL AUTO_INCREMENT,

@@ -1,14 +1,4 @@
 -- Insert movements into the mov table
--- Assuming the table structure is as follows:
--- CREATE TABLE mov (
---     id INT AUTO_INCREMENT PRIMARY KEY,
---     date DATE,
---     description VARCHAR(255),
---     amount DECIMAL(10, 2),
---     isIncome BOOLEAN
--- );
-
--- Insert movements with hardcoded amounts and dates for consistent dummy data
 
 INSERT INTO `finance-tracker`.`mov` (`date`, `description`, `amount`, `isIncome`) VALUES
 -- January 2023
@@ -90,3 +80,8 @@ INSERT INTO `finance-tracker`.`mov` (`date`, `description`, `amount`, `isIncome`
 ('2023-10-05', 'Expense description 1 for 10/2023', 140.00, FALSE),
 ('2023-10-15', 'Expense description 2 for 10/2023', 240.00, FALSE),
 ('2023-10-25', 'Expense description 3 for 10/2023', 340.00, FALSE);
+
+INSERT INTO `finance-tracker`.`user` (`username`, `password`, `role`) VALUES
+('user1', 'password1', 'USER'),
+('user2', 'password2', 'USER'),
+('admin', 'admin', 'USER,ADMIN');

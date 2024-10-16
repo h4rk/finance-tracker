@@ -33,18 +33,19 @@ public class SecurityConfig {
 		return http
     	.authorizeHttpRequests(auth -> 
         	auth
-			.requestMatchers("/login", "/register", "/logout").permitAll()
-			.anyRequest().authenticated())
-		.formLogin(form -> 
-			form.permitAll())
-		.logout(logout -> 
-			logout
-			.logoutUrl("/logout")
-			.logoutSuccessUrl("/login")
-			.invalidateHttpSession(true)
-			.clearAuthentication(true)
-			.deleteCookies("JSESSIONID")
-			.permitAll())
+			.requestMatchers("/**").permitAll())
+		// 	.requestMatchers("/login", "/register", "/logout").permitAll()
+		// 	.anyRequest().authenticated())
+		// .formLogin(form -> 
+		// 	form.permitAll())
+		// .logout(logout -> 
+		// 	logout
+		// 	.logoutUrl("/logout")
+		// 	.logoutSuccessUrl("/login")
+		// 	.invalidateHttpSession(true)
+		// 	.clearAuthentication(true)
+		// 	.deleteCookies("JSESSIONID")
+		// 	.permitAll())
       .csrf((csrf) -> csrf.ignoringRequestMatchers("/**"))
       .build();
     }

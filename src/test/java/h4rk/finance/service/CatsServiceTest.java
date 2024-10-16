@@ -77,10 +77,10 @@ class CatsServiceTest {
     @Test
     void testDeleteCat() {
         long id = 1L;
-        doNothing().when(catsRepository).deleteCat(id);
+		when(catsRepository.deleteCat(id)).thenReturn(1);
 
-        assertDoesNotThrow(() -> catsService.deleteCat(id));
-        verify(catsRepository, times(1)).deleteCat(id);
+		assertDoesNotThrow(() -> catsService.deleteCat(id));
+		verify(catsRepository, times(1)).deleteCat(id);
     }
 
     @Test

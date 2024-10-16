@@ -30,15 +30,16 @@ class MovCatServiceTest {
     }
 
     @Test
-    void testPostMovCat() {
-        BigInteger movId = BigInteger.valueOf(1);
-        List<Long> catIds = Arrays.asList(1L, 2L, 3L);
+	void testPostMovCat() {
+		BigInteger movId = BigInteger.valueOf(1);
+		List<Long> catIds = Arrays.asList(1L, 2L, 3L);
 
-        doNothing().when(movCatRepository).postMovCat(movId, catIds);
+		// Assuming postMovCat returns an int (e.g., number of affected rows)
+		when(movCatRepository.postMovCat(movId, catIds)).thenReturn(catIds.size());
 
-        assertDoesNotThrow(() -> movCatService.postMovCat(movId, catIds));
-        verify(movCatRepository, times(1)).postMovCat(movId, catIds);
-    }
+		assertDoesNotThrow(() -> movCatService.postMovCat(movId, catIds));
+		verify(movCatRepository, times(1)).postMovCat(movId, catIds);
+	}
 
     @Test
     void testPostMovCatException() {

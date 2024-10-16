@@ -11,6 +11,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.MockedStatic;
 import org.mockito.MockitoAnnotations;
 import org.springframework.boot.test.context.SpringBootTest;
 
@@ -42,14 +43,16 @@ class AnalyticsServiceTest {
         int year = 2023;
         MonthlyRecap expectedRecap = new MonthlyRecap();
 
-        when(Utils.currentMonth()).thenReturn(month);
-        when(Utils.currentYear()).thenReturn(year);
-        when(analyticsRepository.getMonthlyAnalytics(month, year)).thenReturn(expectedRecap);
+        try (MockedStatic<Utils> mockedUtils = mockStatic(Utils.class)) {
+            mockedUtils.when(Utils::currentMonth).thenReturn(month);
+            mockedUtils.when(Utils::currentYear).thenReturn(year);
+            when(analyticsRepository.getMonthlyAnalytics(month, year)).thenReturn(expectedRecap);
 
-        MonthlyRecap actualRecap = analyticsService.getMonthlyAnalytics();
+            MonthlyRecap actualRecap = analyticsService.getMonthlyAnalytics();
 
-        assertEquals(expectedRecap, actualRecap);
-        verify(analyticsRepository, times(1)).getMonthlyAnalytics(month, year);
+            assertEquals(expectedRecap, actualRecap);
+            verify(analyticsRepository, times(1)).getMonthlyAnalytics(month, year);
+        }
     }
 
     @Test
@@ -59,12 +62,14 @@ class AnalyticsServiceTest {
         expectedRecaps.put(1, new MonthlyRecap());
         expectedRecaps.put(2, new MonthlyRecap());
 
-        when(Utils.currentSqlDate()).thenReturn(currentDate);
-        when(analyticsRepository.getYearlyAnalytics(currentDate)).thenReturn(expectedRecaps);
+        try (MockedStatic<Utils> mockedUtils = mockStatic(Utils.class)) {
+            mockedUtils.when(Utils::currentSqlDate).thenReturn(currentDate);
+            when(analyticsRepository.getYearlyAnalytics(currentDate)).thenReturn(expectedRecaps);
 
-        Map<Integer, MonthlyRecap> actualRecaps = analyticsService.getYearlyAnalytics();
+            Map<Integer, MonthlyRecap> actualRecaps = analyticsService.getYearlyAnalytics();
 
-        assertEquals(expectedRecaps, actualRecaps);
-        verify(analyticsRepository, times(1)).getYearlyAnalytics(currentDate);
+            assertEquals(expectedRecaps, actualRecaps);
+            verify(analyticsRepository, times(1)).getYearlyAnalytics(currentDate);
+        }
     }
 }

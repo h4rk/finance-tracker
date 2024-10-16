@@ -1,23 +1,13 @@
-<!DOCTYPE html>
-<html lang="it" class="h-full bg-gray-100">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Personal Finance Tracker</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
+<th:block th:replace="layout/base :: html(title='Personal Finance Tracker', bodyClass='h-full bg-gray-100')">
+    <th:block th:fragment="content">
+        <div class="min-h-full">
+            <header class="bg-white shadow">
+                <div class="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
+                    <h1 class="text-3xl font-bold tracking-tight text-gray-900">Personal Finance Tracker</h1>
+                </div>
+            </header>
 
-</head>
-<body class="h-full">
-    <div class="min-h-full">
-        <header class="bg-white shadow">
-            <div class="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
-                <h1 class="text-3xl font-bold tracking-tight text-gray-900">Personal Finance Tracker</h1>
-            </div>
-        </header>
-
-        <main>
+            <main>
             <div class="mx-auto max-w-[1800px] py-6 sm:px-6 lg:px-8">
                 <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
                     <!-- Nuovo movimento -->
@@ -177,8 +167,11 @@
                     </div>
                 </div>
             </div>
-        </main>
-    </div>
-       <script type="module" src="js/main.js"></script>
-</body>
-</html>
+            </main>
+        </div>
+    </th:block>
+    
+    <th:block th:fragment="extraScripts">
+        <script type="module" th:src="@{/js/main.js}"></script>
+    </th:block>
+</th:block>

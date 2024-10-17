@@ -34,10 +34,11 @@ public class SecurityConfig {
     	.authorizeHttpRequests(auth -> 
         	auth
 			.requestMatchers("/**").permitAll())
-		// 	.requestMatchers("/login", "/register", "/logout").permitAll()
+		// 	.requestMatchers("/login", "/register", "/logout", "/error").permitAll()
 		// 	.anyRequest().authenticated())
 		// .formLogin(form -> 
-		// 	form.permitAll())
+		// 	form.loginPage("/login")
+		// 	.permitAll())
 		// .logout(logout -> 
 		// 	logout
 		// 	.logoutUrl("/logout")

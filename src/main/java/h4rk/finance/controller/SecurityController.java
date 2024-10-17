@@ -28,7 +28,7 @@ public class SecurityController {
 		return ResponseEntity.ok("User registered successfully");
 	}
 
-	@RequestMapping(value = "/login", method = RequestMethod.GET, produces = MediaType.TEXT_HTML_VALUE)
+	@GetMapping("/login")
 	public String login() {
 		log.info("Login page requested");
 		return "login";

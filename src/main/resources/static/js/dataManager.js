@@ -1,4 +1,5 @@
 import { fetchCategories, fetchTransactions, fetchCatTypes, createTransaction, createCategory, deleteCategory, deleteTransaction } from './api.js';
+import { formatCurrency } from './utils.js';
 
 export async function loadData(appData) {
     try {
@@ -24,13 +25,39 @@ export async function loadData(appData) {
     }
 }
 
-export function updateMonthlySummary(appData) {
-    const income = appData.transactions.filter(t => t.amount > 0).reduce((sum, t) => sum + t.amount, 0);
-    const expenses = Math.abs(appData.transactions.filter(t => t.amount < 0).reduce((sum, t) => sum + t.amount, 0));
-    const balance = income - expenses;
+export async function updateMonthlySummary(appData) {
+    try {
+        const response = await fetch('http://localhost:8080/analytics/monthly');
+        const monthlyData = await response.json();
 
-    appData.monthlySummary = { income, expenses, balance };
-    return appData.monthlySummary;
+        const income = monthlyData.monthlyIncome;
+        const expenses = monthlyData.monthlyExpense;
+        const delta = income - expenses;
+
+        appData.monthlySummary = { income, expenses, delta };
+
+        // Update the HTML elements
+        document.getElementById('income').textContent = formatCurrency(income);
+        document.getElementById('expenses').textContent = formatCurrency(expenses);
+        document.getElementById('balance').textContent = formatCurrency(delta);
+
+        // Optionally change the color of the delta based on its value
+        const balanceElement = document.getElementById('balance');
+        if (delta > 0) {
+            balanceElement.classList.add('text-green-600');
+            balanceElement.classList.remove('text-red-600');
+        } else if (delta < 0) {
+            balanceElement.classList.add('text-red-600');
+            balanceElement.classList.remove('text-green-600');
+        } else {
+            balanceElement.classList.remove('text-green-600', 'text-red-600');
+        }
+
+        return appData.monthlySummary;
+    } catch (error) {
+        console.error('Error fetching monthly summary:', error);
+        throw error;
+    }
 }
 
 export async function addTransaction(appData, transactionData) {

@@ -18,6 +18,7 @@ let appData = {
 async function initializeApp() {
     try {
         await loadData(appData);
+        await updateMonthlySummary(appData);
 
         // Setup UI components
         setupBudgetModal();
@@ -34,7 +35,7 @@ async function initializeApp() {
 
         showNotification('Applicazione inizializzata con successo', 'success');
     } catch (error) {
-        console.error('Error during app initialization:', error);
+        console.error('Error initializing app:', error);
         if (error.message.includes('Bad Request')) {
             showNotification('There was an issue with the data request. Please try again later or contact support.', 'error');
         } else {

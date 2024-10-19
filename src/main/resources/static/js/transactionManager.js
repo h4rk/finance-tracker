@@ -5,14 +5,14 @@ import { formatCurrency, formatDate, showNotification } from './utils.js';
 export async function handleNewTransaction(e, appData) {
     e.preventDefault();
     const form = e.target;
-    const amount = Math.abs(parseFloat(form.amount.value));
+    const amount = parseFloat(form.amount.value);
     const isIncome = form.transactionType.checked;
 
     const transactionData = {
         description: form.description.value,
-        amount: isIncome ? amount : -amount,
+        amount: isIncome ? Math.abs(amount) : -Math.abs(amount),
         date: form.date.value,
-        catId: parseInt(form.category.value),
+        catIds: Array.from(form.category.selectedOptions).map(option => parseInt(option.value))
     };
 
     try {
@@ -59,15 +59,15 @@ export function handleTransactionFilter(appData) {
 }
 
 export function showTransactionDetails(transaction, appData) {
-    const category = getCategoryName(appData, transaction.catIds);
+    const categories = transaction.catIds.map(id => getCategoryName(appData, id)).join(', ') || 'Nessuna categoria';
     const detailsHtml = `
         <div class="bg-white p-4 rounded-lg shadow">
             <h3 class="text-lg font-semibold mb-2">Dettagli Transazione</h3>
             <p><strong>Data:</strong> ${formatDate(transaction.date)}</p>
             <p><strong>Descrizione:</strong> ${transaction.description}</p>
-            <p><strong>Categoria:</strong> ${category}</p>
+            <p><strong>Categorie:</strong> ${categories}</p>
             <p><strong>Importo:</strong> ${formatCurrency(transaction.amount)}</p>
-            <p><strong>Tipo:</strong> ${transaction.income ? 'Entrata' : 'Uscita'}</p>
+            <p><strong>Tipo:</strong> ${transaction.amount >= 0 ? 'Entrata' : 'Uscita'}</p>
         </div>
     `;
     
@@ -83,16 +83,16 @@ export function hideTransactionDetails() {
 
 export function exportTransactions(appData) {
     let csvContent = "data:text/csv;charset=utf-8,";
-    csvContent += "Data,Descrizione,Categoria,Importo,Tipo\n";
+    csvContent += "Data,Descrizione,Categorie,Importo,Tipo\n";
 
     appData.transactions.forEach(t => {
-        const category = getCategoryName(appData, t.catIds);
+        const categories = t.catIds.map(id => getCategoryName(appData, id)).join(', ') || 'Nessuna categoria';
         const row = [
             formatDate(t.date),
             t.description,
-            category,
+            categories,
             formatCurrency(t.amount),
-            t.income ? "Entrata" : "Uscita"
+            t.amount >= 0 ? "Entrata" : "Uscita"
         ].join(",");
         csvContent += row + "\n";
     });

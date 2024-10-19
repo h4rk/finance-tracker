@@ -61,23 +61,14 @@ export async function updateMonthlySummary(appData) {
 }
 
 export async function addTransaction(appData, transactionData) {
+    console.log('addTransaction received:', JSON.stringify(transactionData, null, 2));
     try {
-        const result = await createTransaction(transactionData);
-        if (result.success) {
-            const newTransaction = {
-                id: result.id || Date.now(), // Use the server-provided ID or generate a temporary one
-                ...transactionData,
-                categoryName: getCategoryName(appData, { [transactionData.catId]: '' })
-            };
-            appData.transactions.push(newTransaction);
-            updateMonthlySummary(appData);
-            return newTransaction;
-        } else {
-            throw new Error(result.message || 'Unknown error occurred');
-        }
+        const newTransaction = await createTransaction(transactionData);
+        appData.transactions.push(newTransaction);
+        return { success: true, message: 'Transazione aggiunta con successo' };
     } catch (error) {
         console.error('Error adding transaction:', error);
-        throw error;
+        return { success: false, message: error.message };
     }
 }
 

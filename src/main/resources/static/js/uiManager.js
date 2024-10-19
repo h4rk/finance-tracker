@@ -54,10 +54,14 @@ export function loadTransactions(appData, transactions = appData.transactions) {
 
     transactions.forEach(transaction => {
         const row = document.createElement('tr');
+        const categories = Object.entries(transaction.catIds)
+            .map(([id, name]) => name)
+            .join(', ');
+
         row.innerHTML = `
             <td class="px-6 py-4 whitespace-nowrap">${transaction.date}</td>
             <td class="px-6 py-4">${transaction.description}</td>
-            <td class="px-6 py-4">${transaction.categoryName || getCategoryName(appData, transaction.catIds) || 'Categoria sconosciuta'}</td>
+            <td class="px-6 py-4">${categories}</td>
             <td class="px-6 py-4">${formatCurrency(Math.abs(transaction.amount))}</td>
             <td class="px-6 py-4 ${transaction.income ? 'text-green-600' : 'text-red-600'}">
                 ${transaction.income ? 'Entrata' : 'Uscita'}
@@ -69,8 +73,6 @@ export function loadTransactions(appData, transactions = appData.transactions) {
         `;
         transactionTableBody.appendChild(row);
     });
-
-    console.log('Loaded transactions:', transactions);
 }
 
 export function setupEventListeners(appData) {
@@ -117,27 +119,30 @@ export function setupEventListeners(appData) {
 export async function handleNewTransaction(e, appData) {
     e.preventDefault();
     const form = e.target;
-    const amount = Math.abs(parseFloat(form.amount.value));
+    const amount = parseFloat(form.amount.value);
     const isIncome = form.transactionType.checked;
 
     const transactionData = {
         description: form.description.value,
-        amount: amount,
+        amount: isIncome ? Math.abs(amount) : -Math.abs(amount),
         date: form.date.value,
-        catId: parseInt(form.category.value),
-        income: isIncome
+        catIds: Array.from(form.category.selectedOptions).map(option => parseInt(option.value, 10)).filter(id => !isNaN(id))
     };
-    console.log("New transaction object:", JSON.stringify(transactionData, null, 2));
+
+    console.log('Transaction data before submission:', JSON.stringify(transactionData, null, 2));
 
     try {
-        const newTransaction = await addTransaction(appData, transactionData);
-        loadDashboardData(appData);
-        loadTransactions(appData);
-        form.reset();
-        updateTransactionTypeUI();
-        showNotification('Transazione aggiunta con successo', 'success');
+        const result = await addTransaction(appData, transactionData);
+        if (result.success) {
+            loadDashboardData(appData);
+            loadTransactions(appData);
+            form.reset();
+            showNotification(result.message, 'success');
+        } else {
+            throw new Error(result.message || 'Unknown error occurred');
+        }
     } catch (error) {
-        console.error('Errore:', error);
+        console.error('Error adding transaction:', error);
         showNotification('Errore nell\'aggiunta della transazione: ' + error.message, 'error');
     }
 }
@@ -263,3 +268,15 @@ function updateCategorySelect(appData) {
         });
     }
 }
+
+function getCategoryNames(appData, catIds) {
+    if (!catIds) return 'Nessuna categoria';
+    
+    // If catIds is not an array, convert it to an array
+    const categoryIds = Array.isArray(catIds) ? catIds : [catIds];
+    
+    if (categoryIds.length === 0) return 'Nessuna categoria';
+    
+    return categoryIds.map(id => getCategoryName(appData, id)).join(', ');
+}
+

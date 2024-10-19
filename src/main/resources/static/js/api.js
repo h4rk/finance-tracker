@@ -1,3 +1,5 @@
+import { API_BASE_URL } from './config.js';
+
 // Function to fetch categories from the server
 export async function fetchCategories() {
     try {
@@ -72,37 +74,37 @@ export async function fetchCatTypes() {
 
 // Function to create a new transaction
 export async function createTransaction(transactionData) {
+    console.log('createTransaction received:', JSON.stringify(transactionData, null, 2));
     try {
-        const payload = {
-            description: transactionData.description,
-            amount: transactionData.amount,
-            date: transactionData.date,
-            income: transactionData.income,
-            catIds: [transactionData.catId]
-        };
-        console.log('Sending transaction data:', JSON.stringify(payload, null, 2));
-        const response = await fetch('/movs', {
+        const response = await fetch(`${API_BASE_URL}/movs`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify(payload),
+            body: JSON.stringify(transactionData),
         });
+
+        console.log('Actual data sent to server:', JSON.stringify(transactionData, null, 2));
         console.log('Response status:', response.status);
+        console.log('Response headers:', response.headers);
+
+        const rawResponse = await response.text();
+        console.log('Raw response:', rawResponse);
+
         if (!response.ok) {
-            const errorText = await response.text();
-            console.log('Error response body:', errorText);
-            throw new Error(`HTTP error! status: ${response.status}, message: ${errorText}`);
+            throw new Error(`HTTP error! status: ${response.status}, message: ${rawResponse}`);
         }
-        
-        // Check if the response has content before parsing JSON
-        const contentType = response.headers.get("content-type");
-        if (contentType && contentType.indexOf("application/json") !== -1) {
-            const newTransaction = await response.json();
-            return { success: true, id: newTransaction.id, message: 'Transaction created successfully' };
-        } else {
-            // If there's no JSON content, return a success message without an ID
-            return { success: true, message: 'Transaction created successfully' };
+
+        if (!rawResponse) {
+            console.warn('Empty response from server, but status is OK. Returning submitted data.');
+            return transactionData; // Return the data that was submitted
+        }
+
+        try {
+            return JSON.parse(rawResponse);
+        } catch (parseError) {
+            console.error('Error parsing JSON:', parseError);
+            throw new Error(`Invalid JSON response: ${rawResponse}`);
         }
     } catch (error) {
         console.error('Error in createTransaction:', error);

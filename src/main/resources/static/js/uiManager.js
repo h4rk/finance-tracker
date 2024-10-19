@@ -1,6 +1,7 @@
 import { updateMonthlySummary, addTransaction, addCategory, removeCategory, removeTransaction, filterTransactions, getCategoryName } from './dataManager.js';
 import { updateTrendChart, updateBudgetProgress } from './chartManager.js';
 import { formatCurrency, showNotification } from './utils.js';
+import { initializeBudgetModal, displayBudgetSummary } from './budgetManager.js';
 
 export function loadDashboardData(appData) {
     updateMonthlySummary(appData);
@@ -16,20 +17,18 @@ function displayMonthlySummary(summary) {
 }
 
 export function loadCategories(appData) {
-    const categorySelect = document.getElementById('category');
     const categoryList = document.getElementById('categoryList');
     
-    categorySelect.innerHTML = '<option value="">Seleziona categoria</option>';
+    if (!categoryList) {
+        console.warn('Category list element not found. Skipping category list population.');
+        return;
+    }
+
+    // Clear existing categories
     categoryList.innerHTML = '';
 
+    // Add categories to the list
     appData.categories.forEach(category => {
-        // Populate category select
-        const option = document.createElement('option');
-        option.value = category.id;
-        option.textContent = category.name;
-        categorySelect.appendChild(option);
-
-        // Populate category list
         const li = document.createElement('li');
         li.className = 'py-2 flex justify-between items-center';
         li.innerHTML = `
@@ -42,6 +41,11 @@ export function loadCategories(appData) {
         `;
         categoryList.appendChild(li);
     });
+
+    console.log('Categories loaded:', appData.categories.length);
+    
+    // Update the category select as well
+    updateCategorySelect(appData);
 }
 
 export function loadTransactions(appData, transactions = appData.transactions) {
@@ -70,14 +74,44 @@ export function loadTransactions(appData, transactions = appData.transactions) {
 }
 
 export function setupEventListeners(appData) {
-    document.getElementById('newTransactionForm').addEventListener('submit', e => handleNewTransaction(e, appData));
-    document.getElementById('newCategoryForm').addEventListener('submit', e => handleNewCategory(e, appData));
-    document.getElementById('transactionType').addEventListener('change', updateTransactionTypeLabel);
-    document.getElementById('trendPeriod').addEventListener('change', () => updateTrendChart(appData));
-    document.getElementById('transactionSearch').addEventListener('input', () => handleTransactionFilter(appData));
-    document.getElementById('transactionFilter').addEventListener('change', () => handleTransactionFilter(appData));
-    document.getElementById('categoryList').addEventListener('click', e => handleCategoryDelete(e, appData));
-    document.getElementById('transactionTable').addEventListener('click', e => handleTransactionAction(e, appData));
+    const elements = [
+        { id: 'newTransactionForm', event: 'submit', handler: (e) => handleNewTransaction(e, appData) },
+        { id: 'newCategoryForm', event: 'submit', handler: (e) => handleNewCategory(e, appData) },
+        { id: 'transactionSearch', event: 'input', handler: () => filterTransactions(appData) },
+        { id: 'transactionFilter', event: 'change', handler: () => filterTransactions(appData) },
+        { id: 'trendPeriod', event: 'change', handler: () => updateTrendChart(appData) },
+    ];
+
+    elements.forEach(({ id, event, handler }) => {
+        const element = document.getElementById(id);
+        if (element) {
+            element.addEventListener(event, handler);
+        } else {
+            console.warn(`Element with id '${id}' not found. Event listener for '${event}' event could not be added.`);
+        }
+    });
+
+    const categoryList = document.getElementById('categoryList');
+    if (categoryList) {
+        categoryList.addEventListener('click', (e) => {
+            const deleteButton = e.target.closest('.delete-category');
+            if (deleteButton) {
+                const categoryId = deleteButton.dataset.categoryId;
+                handleDeleteCategory(categoryId, appData);
+            }
+        });
+    } else {
+        console.warn("Element with id 'categoryList' not found. Event delegation could not be set up.");
+    }
+
+    const transactionTable = document.getElementById('transactionTable');
+    if (transactionTable) {
+        transactionTable.addEventListener('click', (e) => handleTransactionAction(e, appData));
+    } else {
+        console.warn("Element with id 'transactionTable' not found. Event delegation could not be set up.");
+    }
+
+    console.log('Event listeners setup completed');
 }
 
 export async function handleNewTransaction(e, appData) {
@@ -128,17 +162,24 @@ async function handleNewCategory(e, appData) {
     }
 }
 
-async function handleCategoryDelete(e, appData) {
-    if (e.target.closest('.delete-category')) {
-        const categoryId = parseInt(e.target.closest('.delete-category').dataset.categoryId);
-        try {
-            await removeCategory(appData, categoryId);
-            loadCategories(appData);
-            updateBudgetProgress(appData);
-        } catch (error) {
-            console.error('Error deleting category:', error);
-            // Handle error (e.g., show error message to user)
-        }
+async function handleDeleteCategory(categoryId, appData) {
+    try {
+        await removeCategory(appData, categoryId);
+        
+        // Update the category list in the UI
+        loadCategories(appData);
+        
+        // Update the category select in the transaction form
+        updateCategorySelect(appData);
+        
+        // Update any other parts of the UI that might display categories
+        updateBudgetProgress(appData);
+        loadTransactions(appData); // This will refresh the transaction list with updated category names
+        
+        showNotification('Categoria eliminata con successo', 'success');
+    } catch (error) {
+        console.error('Error deleting category:', error);
+        showNotification('Errore nell\'eliminazione della categoria: ' + error.message, 'error');
     }
 }
 
@@ -149,9 +190,10 @@ async function handleTransactionAction(e, appData) {
             await removeTransaction(appData, transactionId);
             loadDashboardData(appData);
             loadTransactions(appData);
+            showNotification('Transazione eliminata con successo', 'success');
         } catch (error) {
             console.error('Error deleting transaction:', error);
-            // Handle error (e.g., show error message to user)
+            showNotification('Errore nell\'eliminazione della transazione: ' + error.message, 'error');
         }
     } else if (e.target.classList.contains('edit-transaction')) {
         const transactionId = parseInt(e.target.dataset.transactionId);
@@ -208,3 +250,16 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 // Add other UI-related functions as needed
+
+function updateCategorySelect(appData) {
+    const categorySelect = document.getElementById('category');
+    if (categorySelect) {
+        categorySelect.innerHTML = '<option value="">Seleziona categoria</option>';
+        appData.categories.forEach(category => {
+            const option = document.createElement('option');
+            option.value = category.id;
+            option.textContent = category.name;
+            categorySelect.appendChild(option);
+        });
+    }
+}

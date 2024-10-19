@@ -85,9 +85,28 @@ export async function updateTrendChart() {
                 },
                 y: {
                     beginAtZero: true,
+                    afterDataLimits: (scale) => {
+                        const maxPositive = Math.max(0, ...deltaData);
+                        const maxNegative = Math.abs(Math.min(0, ...deltaData));
+                        const absMax = Math.max(maxPositive, maxNegative, 1);
+                        
+                        // Add 10% padding
+                        const padding = absMax * 0.1;
+                        
+                        scale.max = maxPositive + padding;
+                        scale.min = -maxNegative - padding;
+                        
+                        // Ensure zero is always included
+                        if (scale.max < 0) scale.max = padding;
+                        if (scale.min > 0) scale.min = -padding;
+                    },
                     ticks: {
                         callback: function(value) {
                             return formatCurrency(value);
+                        },
+                        stepSize: (context) => {
+                            const range = context.max - context.min;
+                            return Math.pow(10, Math.floor(Math.log10(range))) / 2;
                         }
                     },
                     grid: {
@@ -104,14 +123,9 @@ export async function updateTrendChart() {
                             return 1;
                         },
                     },
-                    afterDataLimits: (scale) => {
-                        const absMax = Math.max(Math.abs(scale.max), Math.abs(scale.min));
-                        scale.max = absMax;
-                        scale.min = -absMax;
-                        // Aggiungi un 10% di spazio extra sopra e sotto
-                        const padding = absMax * 0.1;
-                        scale.max += padding;
-                        scale.min -= padding;
+                    afterFit: (scaleInstance) => {
+                        scaleInstance.max = Math.max(scaleInstance.max, 1);
+                        scaleInstance.min = Math.min(scaleInstance.min, -1);
                     }
                 }
             },

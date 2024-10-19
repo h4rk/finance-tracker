@@ -48,15 +48,30 @@ public class MovsRepository {
 	}
 
 	public List<MovWithFullCat> getAllMovsWithFullCat() {
-		return jdbcTemplate.query("SELECT mov.mov_id, mov.description, mov.amount, mov.date, mov.isIncome, cat.cat_id, cat.name FROM mov LEFT JOIN mov_cat ON mov.mov_id = mov_cat.mov_id JOIN cat ON mov_cat.cat_id = cat.cat_id", 
-		(rs, rowNum) -> {
+		String sql = "SELECT mov.mov_id, mov.description, mov.amount, mov.date, mov.isIncome, " +
+                     "GROUP_CONCAT(cat.cat_id) as cat_ids, GROUP_CONCAT(cat.name) as cat_names " +
+                     "FROM mov " +
+                     "LEFT JOIN mov_cat ON mov.mov_id = mov_cat.mov_id " +
+                     "LEFT JOIN cat ON mov_cat.cat_id = cat.cat_id " +
+                     "GROUP BY mov.mov_id";
+
+		return jdbcTemplate.query(sql, (rs, rowNum) -> {
 			MovWithFullCat movWithFullCat = new MovWithFullCat();
 			movWithFullCat.setId(rs.getLong("mov_id"));
 			movWithFullCat.setDescription(rs.getString("description"));
 			movWithFullCat.setAmount(rs.getDouble("amount"));
 			movWithFullCat.setDate(rs.getDate("date"));
 			movWithFullCat.setIncome(rs.getBoolean("isIncome"));
-			movWithFullCat.getCatIds().put(rs.getLong("cat_id"), rs.getString("name"));
+
+			String catIds = rs.getString("cat_ids");
+			String catNames = rs.getString("cat_names");
+			if (catIds != null && catNames != null) {
+				String[] ids = catIds.split(",");
+				String[] names = catNames.split(",");
+				for (int i = 0; i < ids.length; i++) {
+					movWithFullCat.getCatIds().put(Long.parseLong(ids[i]), names[i]);
+				}
+			}
 			return movWithFullCat;
 		});
 	}

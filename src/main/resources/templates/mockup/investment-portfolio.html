@@ -1,0 +1,148 @@
+<th:block th:replace="~{layout/base :: html(
+    title='Investment Portfolio - Personal Finance Tracker',
+    bodyClass='bg-gray-100',
+    content=~{::content},
+    extraHead=~{::extraHead},
+    extraScripts=~{::extraScripts}
+)}">
+    <th:block th:fragment="extraHead">
+        <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    </th:block>
+
+    <th:block th:fragment="content">
+        <div class="container mx-auto px-4 py-8">
+            <h1 class="text-4xl font-bold mb-8 text-indigo-700">Investment Portfolio</h1>
+
+            <!-- Portfolio Summary -->
+            <div class="bg-white p-6 rounded-lg shadow-lg mb-8">
+                <h2 class="text-2xl font-semibold mb-4 text-indigo-600">Portfolio Summary</h2>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div>
+                        <p class="text-sm text-gray-600">Total Value</p>
+                        <p class="text-2xl font-bold text-indigo-700" id="totalValue">$0</p>
+                    </div>
+                    <div>
+                        <p class="text-sm text-gray-600">Total Gain/Loss</p>
+                        <p class="text-2xl font-bold" id="totalGainLoss">$0</p>
+                    </div>
+                    <div>
+                        <p class="text-sm text-gray-600">Performance</p>
+                        <p class="text-2xl font-bold" id="performance">0%</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Investment List -->
+            <div class="bg-white p-6 rounded-lg shadow-lg mb-8">
+                <h2 class="text-2xl font-semibold mb-4 text-indigo-600">Your Investments</h2>
+                <div class="overflow-x-auto">
+                    <table class="w-full">
+                        <thead>
+                            <tr class="bg-indigo-100">
+                                <th class="text-left py-3 px-4 font-semibold text-indigo-800">Symbol</th>
+                                <th class="text-left py-3 px-4 font-semibold text-indigo-800">Name</th>
+                                <th class="text-right py-3 px-4 font-semibold text-indigo-800">Shares</th>
+                                <th class="text-right py-3 px-4 font-semibold text-indigo-800">Avg Cost</th>
+                                <th class="text-right py-3 px-4 font-semibold text-indigo-800">Current Price</th>
+                                <th class="text-right py-3 px-4 font-semibold text-indigo-800">Market Value</th>
+                                <th class="text-right py-3 px-4 font-semibold text-indigo-800">Gain/Loss</th>
+                            </tr>
+                        </thead>
+                        <tbody id="investmentList">
+                            <!-- Investments will be dynamically added here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Add New Investment -->
+            <div class="bg-white p-6 rounded-lg shadow-lg">
+                <h2 class="text-2xl font-semibold mb-4 text-indigo-600">Add New Investment</h2>
+                <form id="investmentForm" class="space-y-4">
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div>
+                            <label for="symbol" class="block mb-1 text-sm font-medium text-gray-700">Symbol</label>
+                            <input type="text" id="symbol" class="w-full border rounded-md px-3 py-2 focus:ring-indigo-500 focus:border-indigo-500" required>
+                        </div>
+                        <div>
+                            <label for="shares" class="block mb-1 text-sm font-medium text-gray-700">Shares</label>
+                            <input type="number" id="shares" class="w-full border rounded-md px-3 py-2 focus:ring-indigo-500 focus:border-indigo-500" required>
+                        </div>
+                        <div>
+                            <label for="purchasePrice" class="block mb-1 text-sm font-medium text-gray-700">Purchase Price</label>
+                            <input type="number" id="purchasePrice" class="w-full border rounded-md px-3 py-2 focus:ring-indigo-500 focus:border-indigo-500" required>
+                        </div>
+                    </div>
+                    <button type="submit" class="w-full bg-indigo-500 text-white py-2 px-4 rounded-md hover:bg-indigo-600 transition duration-300">Add Investment</button>
+                </form>
+            </div>
+        </div>
+    </th:block>
+
+    <th:block th:fragment="extraScripts">
+        <script>
+            let investments = [
+                { symbol: 'AAPL', name: 'Apple Inc.', shares: 10, avgCost: 150, currentPrice: 175 },
+                { symbol: 'GOOGL', name: 'Alphabet Inc.', shares: 5, avgCost: 2000, currentPrice: 2200 },
+                { symbol: 'AMZN', name: 'Amazon.com Inc.', shares: 8, avgCost: 3000, currentPrice: 3300 }
+            ];
+
+            function updatePortfolio() {
+                const investmentList = document.getElementById('investmentList');
+                investmentList.innerHTML = '';
+
+                let totalValue = 0;
+                let totalCost = 0;
+
+                investments.forEach(inv => {
+                    const marketValue = inv.shares * inv.currentPrice;
+                    const cost = inv.shares * inv.avgCost;
+                    const gainLoss = marketValue - cost;
+
+                    totalValue += marketValue;
+                    totalCost += cost;
+
+                    const row = document.createElement('tr');
+                    row.className = 'border-b hover:bg-gray-100';
+                    row.innerHTML = `
+                        <td class="py-3 px-4">${inv.symbol}</td>
+                        <td class="py-3 px-4">${inv.name}</td>
+                        <td class="py-3 px-4 text-right">${inv.shares}</td>
+                        <td class="py-3 px-4 text-right">$${inv.avgCost.toFixed(2)}</td>
+                        <td class="py-3 px-4 text-right">$${inv.currentPrice.toFixed(2)}</td>
+                        <td class="py-3 px-4 text-right">$${marketValue.toFixed(2)}</td>
+                        <td class="py-3 px-4 text-right ${gainLoss >= 0 ? 'text-green-600' : 'text-red-600'}">
+                            $${gainLoss.toFixed(2)}
+                        </td>
+                    `;
+                    investmentList.appendChild(row);
+                });
+
+                const totalGainLoss = totalValue - totalCost;
+                const performance = ((totalValue / totalCost) - 1) * 100;
+
+                document.getElementById('totalValue').textContent = `$${totalValue.toFixed(2)}`;
+                document.getElementById('totalGainLoss').textContent = `$${totalGainLoss.toFixed(2)}`;
+                document.getElementById('totalGainLoss').className = `text-2xl font-bold ${totalGainLoss >= 0 ? 'text-green-600' : 'text-red-600'}`;
+                document.getElementById('performance').textContent = `${performance.toFixed(2)}%`;
+                document.getElementById('performance').className = `text-2xl font-bold ${performance >= 0 ? 'text-green-600' : 'text-red-600'}`;
+            }
+
+            document.getElementById('investmentForm').addEventListener('submit', (e) => {
+                e.preventDefault();
+                const newInvestment = {
+                    symbol: document.getElementById('symbol').value.toUpperCase(),
+                    name: 'New Company', // In a real app, you'd fetch this from an API
+                    shares: parseFloat(document.getElementById('shares').value),
+                    avgCost: parseFloat(document.getElementById('purchasePrice').value),
+                    currentPrice: parseFloat(document.getElementById('purchasePrice').value) // For simplicity, using purchase price as current price
+                };
+                investments.push(newInvestment);
+                updatePortfolio();
+                e.target.reset();
+            });
+
+            updatePortfolio();
+        </script>
+    </th:block>
+</th:block>

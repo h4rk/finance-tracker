@@ -42,4 +42,16 @@ public class MockupController {
         model.addAttribute("pageTitle", "Reports");
         return "mockup/reports";
     }
+
+    @GetMapping("/financial-goals")
+    public String financialGoals(Model model) {
+        model.addAttribute("pageTitle", "Financial Goals");
+        return "mockup/financial-goals";
+    }
+
+    @GetMapping("/investment-portfolio")
+    public String investmentPortfolio(Model model) {
+        model.addAttribute("pageTitle", "Investment Portfolio");
+        return "mockup/investment-portfolio";
+    }   
 }

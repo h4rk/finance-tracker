@@ -1,0 +1,105 @@
+<th:block th:replace="~{layout/base :: html(
+    title='Financial Goals - Personal Finance Tracker',
+    bodyClass='bg-gray-100',
+    content=~{::content},
+    extraHead=~{::extraHead},
+    extraScripts=~{::extraScripts}
+)}">
+    <th:block th:fragment="extraHead">
+        <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    </th:block>
+
+    <th:block th:fragment="content">
+        <div class="container mx-auto px-4 py-8">
+            <h1 class="text-4xl font-bold mb-8 text-indigo-700">Financial Goals</h1>
+
+            <!-- Goal Setting Section -->
+            <div class="bg-white p-6 rounded-lg shadow-lg mb-8">
+                <h2 class="text-2xl font-semibold mb-4 text-indigo-600">Set New Goal</h2>
+                <form id="goalForm" class="space-y-4">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label for="goalName" class="block mb-1 text-sm font-medium text-gray-700">Goal Name</label>
+                            <input type="text" id="goalName" class="w-full border rounded-md px-3 py-2 focus:ring-indigo-500 focus:border-indigo-500" required>
+                        </div>
+                        <div>
+                            <label for="goalAmount" class="block mb-1 text-sm font-medium text-gray-700">Target Amount</label>
+                            <input type="number" id="goalAmount" class="w-full border rounded-md px-3 py-2 focus:ring-indigo-500 focus:border-indigo-500" required>
+                        </div>
+                        <div>
+                            <label for="goalDate" class="block mb-1 text-sm font-medium text-gray-700">Target Date</label>
+                            <input type="date" id="goalDate" class="w-full border rounded-md px-3 py-2 focus:ring-indigo-500 focus:border-indigo-500" required>
+                        </div>
+                        <div>
+                            <label for="goalCategory" class="block mb-1 text-sm font-medium text-gray-700">Category</label>
+                            <select id="goalCategory" class="w-full border rounded-md px-3 py-2 focus:ring-indigo-500 focus:border-indigo-500" required>
+                                <option value="savings">Savings</option>
+                                <option value="investment">Investment</option>
+                                <option value="debt">Debt Repayment</option>
+                                <option value="purchase">Major Purchase</option>
+                            </select>
+                        </div>
+                    </div>
+                    <button type="submit" class="w-full bg-indigo-500 text-white py-2 px-4 rounded-md hover:bg-indigo-600 transition duration-300">Set Goal</button>
+                </form>
+            </div>
+
+            <!-- Goals List -->
+            <div class="bg-white p-6 rounded-lg shadow-lg">
+                <h2 class="text-2xl font-semibold mb-4 text-indigo-600">Your Goals</h2>
+                <div id="goalsList" class="space-y-4">
+                    <!-- Goals will be dynamically added here -->
+                </div>
+            </div>
+        </div>
+    </th:block>
+
+    <th:block th:fragment="extraScripts">
+        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+        <script>
+            let goals = [
+                { id: 1, name: 'Emergency Fund', amount: 10000, currentAmount: 5000, date: '2023-12-31', category: 'savings' },
+                { id: 2, name: 'New Car', amount: 25000, currentAmount: 15000, date: '2024-06-30', category: 'purchase' },
+                { id: 3, name: 'Pay off Credit Card', amount: 5000, currentAmount: 2000, date: '2023-09-30', category: 'debt' }
+            ];
+
+            function renderGoals() {
+                const goalsList = document.getElementById('goalsList');
+                goalsList.innerHTML = '';
+
+                goals.forEach(goal => {
+                    const progress = (goal.currentAmount / goal.amount) * 100;
+                    const goalElement = document.createElement('div');
+                    goalElement.className = 'bg-gray-100 p-4 rounded-lg';
+                    goalElement.innerHTML = `
+                        <h3 class="text-lg font-semibold">${goal.name}</h3>
+                        <p class="text-sm text-gray-600">Target: $${goal.amount} by ${new Date(goal.date).toLocaleDateString()}</p>
+                        <div class="mt-2 h-4 relative max-w-xl rounded-full overflow-hidden">
+                            <div class="w-full h-full bg-gray-200 absolute"></div>
+                            <div class="h-full bg-indigo-500 absolute" style="width: ${progress}%"></div>
+                        </div>
+                        <p class="text-sm mt-1">Progress: $${goal.currentAmount} (${progress.toFixed(2)}%)</p>
+                    `;
+                    goalsList.appendChild(goalElement);
+                });
+            }
+
+            document.getElementById('goalForm').addEventListener('submit', (e) => {
+                e.preventDefault();
+                const newGoal = {
+                    id: goals.length + 1,
+                    name: document.getElementById('goalName').value,
+                    amount: parseFloat(document.getElementById('goalAmount').value),
+                    currentAmount: 0,
+                    date: document.getElementById('goalDate').value,
+                    category: document.getElementById('goalCategory').value
+                };
+                goals.push(newGoal);
+                renderGoals();
+                e.target.reset();
+            });
+
+            renderGoals();
+        </script>
+    </th:block>
+</th:block>

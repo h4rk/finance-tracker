@@ -2,39 +2,49 @@
     title='Category Management - Personal Finance Tracker',
     bodyClass='bg-gray-100',
     content=~{::content},
-    extraHead=~{},
+    extraHead=~{::extraHead},
     extraScripts=~{::extraScripts}
 )}">
+    <th:block th:fragment="extraHead">
+        <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    </th:block>
+
     <th:block th:fragment="content">
         <div class="container mx-auto px-4 py-8">
-            <h1 class="text-3xl font-bold mb-8">Category Management</h1>
+            <h1 class="text-4xl font-bold mb-8 text-indigo-700">Category Management</h1>
 
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
                 <!-- Category List -->
-                <div class="bg-white p-6 rounded-lg shadow">
-                    <h2 class="text-xl font-semibold mb-4">Categories</h2>
-                    <ul id="categoryList" class="space-y-2">
-                        <!-- Categories will be dynamically added here -->
-                    </ul>
+                <div class="bg-white p-6 rounded-lg shadow-lg">
+                    <h2 class="text-2xl font-semibold mb-4 text-indigo-600">Categories</h2>
+                    <div class="overflow-y-auto max-h-96">
+                        <ul id="categoryList" class="space-y-2">
+                            <!-- Categories will be dynamically added here -->
+                        </ul>
+                    </div>
                 </div>
 
                 <!-- Add/Edit Category Form -->
-                <div class="bg-white p-6 rounded-lg shadow">
-                    <h2 class="text-xl font-semibold mb-4">Add/Edit Category</h2>
+                <div class="bg-white p-6 rounded-lg shadow-lg">
+                    <h2 class="text-2xl font-semibold mb-4 text-indigo-600">Add/Edit Category</h2>
                     <form id="categoryForm" class="space-y-4">
                         <input type="hidden" id="categoryId">
                         <div>
-                            <label for="categoryName" class="block mb-1">Name</label>
-                            <input type="text" id="categoryName" class="w-full border rounded px-3 py-2" required>
+                            <label for="categoryName" class="block mb-1 text-sm font-medium text-gray-700">Name</label>
+                            <input type="text" id="categoryName" class="w-full border rounded-md px-3 py-2 focus:ring-indigo-500 focus:border-indigo-500" required>
                         </div>
                         <div>
-                            <label for="categoryType" class="block mb-1">Type</label>
-                            <select id="categoryType" class="w-full border rounded px-3 py-2" required>
+                            <label for="categoryType" class="block mb-1 text-sm font-medium text-gray-700">Type</label>
+                            <select id="categoryType" class="w-full border rounded-md px-3 py-2 focus:ring-indigo-500 focus:border-indigo-500" required>
                                 <option value="INCOME">Income</option>
                                 <option value="EXPENSE">Expense</option>
                             </select>
                         </div>
-                        <button type="submit" class="w-full bg-blue-500 text-white py-2 rounded hover:bg-blue-600">Save Category</button>
+                        <div>
+                            <label for="categoryIcon" class="block mb-1 text-sm font-medium text-gray-700">Icon</label>
+                            <input type="text" id="categoryIcon" class="w-full border rounded-md px-3 py-2 focus:ring-indigo-500 focus:border-indigo-500" placeholder="Enter icon name (e.g., 'shopping-cart')">
+                        </div>
+                        <button type="submit" class="w-full bg-indigo-500 text-white py-2 rounded-lg hover:bg-indigo-600 transition duration-300">Save Category</button>
                     </form>
                 </div>
             </div>
@@ -42,34 +52,88 @@
     </th:block>
 
     <th:block th:fragment="extraScripts">
+        <script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
         <script>
+            let categories = [
+                { id: 1, name: 'Salary', type: 'INCOME', icon: 'dollar-sign' },
+                { id: 2, name: 'Groceries', type: 'EXPENSE', icon: 'shopping-cart' },
+                { id: 3, name: 'Rent', type: 'EXPENSE', icon: 'home' },
+                { id: 4, name: 'Utilities', type: 'EXPENSE', icon: 'zap' },
+                { id: 5, name: 'Entertainment', type: 'EXPENSE', icon: 'film' },
+                { id: 6, name: 'Investments', type: 'INCOME', icon: 'trending-up' },
+                { id: 7, name: 'Dining Out', type: 'EXPENSE', icon: 'coffee' },
+                { id: 8, name: 'Transportation', type: 'EXPENSE', icon: 'truck' },
+                { id: 9, name: 'Healthcare', type: 'EXPENSE', icon: 'heart' },
+                { id: 10, name: 'Education', type: 'EXPENSE', icon: 'book' }
+            ];
+
             // Fetch and display categories
-            async function fetchCategories() {
-                const response = await fetch('/cats');
-                const categories = await response.json();
+            function fetchCategories() {
                 const categoryList = document.getElementById('categoryList');
                 categoryList.innerHTML = '';
                 categories.forEach(category => {
                     const li = document.createElement('li');
+                    li.className = 'flex justify-between items-center p-3 hover:bg-gray-100 rounded-md';
                     li.innerHTML = `
-                        <div class="flex justify-between items-center">
-                            <span>${category.name} (${category.type})</span>
-                            <button class="text-blue-500 hover:text-blue-700" onclick="editCategory(${category.id})">Edit</button>
+                        <div class="flex items-center">
+                            <i data-feather="${category.icon}" class="mr-2 ${category.type === 'INCOME' ? 'text-green-500' : 'text-red-500'}"></i>
+                            <span>${category.name} <span class="text-sm text-gray-500">(${category.type})</span></span>
+                        </div>
+                        <div>
+                            <button class="text-indigo-500 hover:text-indigo-700 mr-2" onclick="editCategory(${category.id})">
+                                <i data-feather="edit-2"></i>
+                            </button>
+                            <button class="text-red-500 hover:text-red-700" onclick="deleteCategory(${category.id})">
+                                <i data-feather="trash-2"></i>
+                            </button>
                         </div>
                     `;
                     categoryList.appendChild(li);
                 });
+                feather.replace();
             }
 
             // Edit category
             function editCategory(id) {
-                // Implement edit functionality
+                const category = categories.find(c => c.id === id);
+                if (category) {
+                    document.getElementById('categoryId').value = category.id;
+                    document.getElementById('categoryName').value = category.name;
+                    document.getElementById('categoryType').value = category.type;
+                    document.getElementById('categoryIcon').value = category.icon;
+                }
+            }
+
+            // Delete category
+            function deleteCategory(id) {
+                if (confirm('Are you sure you want to delete this category?')) {
+                    categories = categories.filter(c => c.id !== id);
+                    fetchCategories();
+                }
             }
 
             // Form submission
-            document.getElementById('categoryForm').addEventListener('submit', async (e) => {
+            document.getElementById('categoryForm').addEventListener('submit', (e) => {
                 e.preventDefault();
-                // Implement form submission
+                const id = document.getElementById('categoryId').value;
+                const name = document.getElementById('categoryName').value;
+                const type = document.getElementById('categoryType').value;
+                const icon = document.getElementById('categoryIcon').value;
+
+                if (id) {
+                    // Update existing category
+                    const index = categories.findIndex(c => c.id === parseInt(id));
+                    categories[index] = { id: parseInt(id), name, type, icon };
+                } else {
+                    // Add new category
+                    const newId = Math.max(...categories.map(c => c.id)) + 1;
+                    categories.push({ id: newId, name, type, icon });
+                }
+
+                fetchCategories();
+                e.target.reset();
+                document.getElementById('categoryId').value = '';
+                alert('Category saved successfully!');
             });
 
             fetchCategories();

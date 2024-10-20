@@ -1,18 +1,91 @@
-<nav th:fragment="nav" class="bg-indigo-600">
+<nav th:fragment="nav" class="bg-gray-900 text-white">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="flex items-center justify-between h-16">
             <div class="flex items-center">
-                <a href="/" class="text-white font-bold">Personal Finance Tracker</a>
-                <div class="ml-10 flex items-baseline space-x-4">
-                    <a href="/" class="text-gray-300 hover:bg-indigo-700 hover:text-white px-3 py-2 rounded-md text-sm font-medium">Dashboard</a>
-                    <a href="/budget-planner" class="text-gray-300 hover:bg-indigo-700 hover:text-white px-3 py-2 rounded-md text-sm font-medium">Budget Planner</a>
-                    <a href="/analytics" class="text-gray-300 hover:bg-indigo-700 hover:text-white px-3 py-2 rounded-md text-sm font-medium">Analytics</a>
-                    <a href="/category-management" class="text-gray-300 hover:bg-indigo-700 hover:text-white px-3 py-2 rounded-md text-sm font-medium">Categories</a>
-                    <a href="/movement-history" class="text-gray-300 hover:bg-indigo-700 hover:text-white px-3 py-2 rounded-md text-sm font-medium">Movements</a>
-                    <a href="/reports" class="text-gray-300 hover:bg-indigo-700 hover:text-white px-3 py-2 rounded-md text-sm font-medium">Reports</a>
-                    <a href="/user-profile" class="text-gray-300 hover:bg-indigo-700 hover:text-white px-3 py-2 rounded-md text-sm font-medium">Profile</a>
-                </div>
+                <a href="/" class="text-white font-bold text-xl">Personal Finance Tracker</a>
             </div>
+            <!-- Desktop menu button -->
+            <div class="hidden lg:block">
+                <button id="desktop-menu-button" class="text-gray-300 hover:bg-gray-700 hover:text-white px-3 py-2 rounded-md text-sm font-medium transition-all duration-300 transform hover:scale-105">
+                    <span>Explore</span>
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 inline-block ml-1" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
+                    </svg>
+                </button>
+            </div>
+            <!-- Mobile menu button -->
+            <div class="lg:hidden">
+                <button id="mobile-menu-button" class="text-gray-300 hover:bg-gray-700 hover:text-white px-2 py-1 rounded-md text-sm font-medium focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-800 focus:ring-white">
+                    <svg class="h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+                    </svg>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Redesigned Fullscreen Desktop menu -->
+<div id="desktop-menu" class="hidden fixed inset-0 bg-gray-900 bg-opacity-95 z-50 overflow-auto">
+    <div class="h-screen flex flex-col">
+        <div class="flex-grow grid grid-cols-2 grid-rows-2">
+            <div class="bg-gray-800 p-8 border-r border-b border-gray-700">
+                <h2 class="text-3xl font-bold mb-6 border-b pb-2">Gestione finanziaria</h2>
+                <ul class="space-y-4">
+                    <li><a href="/dashboard" class="text-gray-300 hover:text-white transition-colors duration-200 flex items-center text-lg"><svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-3" viewBox="0 0 20 20" fill="currentColor"><path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z"/></svg>Dashboard</a></li>
+                    <li><a href="/budget-planner" class="text-gray-300 hover:text-white transition-colors duration-200 flex items-center text-lg"><svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-3" viewBox="0 0 20 20" fill="currentColor"><path d="M4 4a2 2 0 00-2 2v1h16V6a2 2 0 00-2-2H4z" /><path fill-rule="evenodd" d="M18 9H2v5a2 2 0 002 2h12a2 2 0 002-2V9zM4 13a1 1 0 011-1h1a1 1 0 110 2H5a1 1 0 01-1-1zm5-1a1 1 0 100 2h1a1 1 0 100-2H9z" clip-rule="evenodd" /></svg>Pianificatore del budget</a></li>
+                    <li><a href="/movement-history" class="text-gray-300 hover:text-white transition-colors duration-200 flex items-center text-lg"><svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-3" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z" clip-rule="evenodd" /></svg>Lista dei movimenti</a></li>
+                    <li><a href="/financial-goals" class="text-gray-300 hover:text-white transition-colors duration-200 flex items-center text-lg"><svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-3" viewBox="0 0 20 20" fill="currentColor"><path d="M2 10.5a1.5 1.5 0 113 0v6a1.5 1.5 0 01-3 0v-6zM6 10.333v5.43a2 2 0 001.106 1.79l.05.025A4 4 0 008.943 18h5.416a2 2 0 001.962-1.608l1.2-6A2 2 0 0015.56 8H12V4a2 2 0 00-2-2 1 1 0 00-1 1v.667a4 4 0 01-.8 2.4L6.8 7.933a4 4 0 00-.8 2.4z" /></svg>Goal finanziari</a></li>
+                </ul>
+            </div>
+            <div class="bg-gray-800 p-8 border-l border-b border-gray-700">
+                <h2 class="text-3xl font-bold mb-6 border-b pb-2">Analisi e reportistica</h2>
+                <ul class="space-y-4">
+                    <li><a href="/analytics" class="text-gray-300 hover:text-white transition-colors duration-200 flex items-center text-lg"><svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-3" viewBox="0 0 20 20" fill="currentColor"><path d="M2 11a1 1 0 011-1h2a1 1 0 011 1v5a1 1 0 01-1 1H3a1 1 0 01-1-1v-5zM8 7a1 1 0 011-1h2a1 1 0 011 1v9a1 1 0 01-1 1H9a1 1 0 01-1-1V7zM14 4a1 1 0 011-1h2a1 1 0 011 1v12a1 1 0 01-1 1h-2a1 1 0 01-1-1V4z" /></svg>Analytics</a></li>
+                    <li><a href="/reports" class="text-gray-300 hover:text-white transition-colors duration-200 flex items-center text-lg"><svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-3" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M6 2a2 2 0 00-2 2v12a2 2 0 002 2h8a2 2 0 002-2V7.414A2 2 0 0015.414 6L12 2.586A2 2 0 0010.586 2H6zm2 10a1 1 0 10-2 0v3a1 1 0 102 0v-3zm2-3a1 1 0 011 1v5a1 1 0 11-2 0v-5a1 1 0 011-1zm4-1a1 1 0 10-2 0v7a1 1 0 102 0V8z" clip-rule="evenodd" /></svg>Reportistica</a></li>
+                    <li><a href="/category-management" class="text-gray-300 hover:text-white transition-colors duration-200 flex items-center text-lg"><svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-3" viewBox="0 0 20 20" fill="currentColor"><path d="M7 3a1 1 0 000 2h6a1 1 0 100-2H7zM4 7a1 1 0 011-1h10a1 1 0 110 2H5a1 1 0 01-1-1zM2 11a2 2 0 012-2h12a2 2 0 012 2v4a2 2 0 01-2 2H4a2 2 0 01-2-2v-4z" /></svg>Gestione delle categorie</a></li>
+                </ul>
+            </div>
+            <div class="bg-gray-800 p-8 border-r border-t border-gray-700">
+                <h2 class="text-3xl font-bold mb-6 border-b pb-2">Investimenti e profilo</h2>
+                <ul class="space-y-4">
+                    <li><a href="/investment-portfolio" class="text-gray-300 hover:text-white transition-colors duration-200 flex items-center text-lg"><svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-3" viewBox="0 0 20 20" fill="currentColor"><path d="M13 7H7v6h6V7z" /><path fill-rule="evenodd" d="M7 2a1 1 0 012 0v1h2V2a1 1 0 112 0v1h2a2 2 0 012 2v2h1a1 1 0 110 2h-1v2h1a1 1 0 110 2h-1v2a2 2 0 01-2 2h-2v1a1 1 0 11-2 0v-1H9v1a1 1 0 11-2 0v-1H5a2 2 0 01-2-2v-2H2a1 1 0 110-2h1V9H2a1 1 0 010-2h1V5a2 2 0 012-2h2V2zM5 5h10v10H5V5z" clip-rule="evenodd" /></svg>Portfolio degli investimenti</a></li>
+                    <li><a href="/user-profile" class="text-gray-300 hover:text-white transition-colors duration-200 flex items-center text-lg"><svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-3" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd" /></svg>Impostazioni utente</a></li>
+                </ul>
+            </div>
+            <div class="bg-gray-800 p-8 border-l border-t border-gray-700">
+                <h2 class="text-3xl font-bold mb-6 text-yellow-400 border-b border-yellow-400 pb-2">Descrizione del progetto</h2>
+                <ul class="space-y-2 text-gray-300">
+                    <li><span class="font-semibold">Versione:</span> Alpha</li>
+                    <li><span class="font-semibold">Ultimo aggiornamento:</span> 20 Ottobre, 2024</li>
+                    <li><span class="font-semibold">Sviluppatore:</span> Alessandro Sala / Claudio Novaglio</li>
+                </ul>
+                <p class="mt-4 text-gray-300 text-sm">Personal Finance Tracker è uno strumento completo progettato per aiutarti a gestire i tuoi finanziamenti, tracciare le tue spese, impostare budget e raggiungere i tuoi obiettivi finanziari. Con un'interfaccia intuitiva e facile da usare, prendi il controllo del tuo futuro finanziario oggi!</p>
+            </div>
+        </div>
+    </div>
+    <button id="close-desktop-menu" class="absolute top-6 right-6 text-white hover:text-blue-400 transition-colors duration-200">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+        </svg>
+    </button>
+</div>
+
+    <!-- Fullscreen Mobile menu -->
+    <div id="mobile-menu" class="lg:hidden fixed inset-0 bg-gray-900 z-50 flex flex-col items-center justify-center transform transition-transform duration-300 ease-in-out translate-x-full">
+        <button id="close-mobile-menu" class="absolute top-4 right-4 text-white hover:text-gray-300">
+            <svg class="h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+        </button>
+        <div class="flex flex-col space-y-4">
+            <a href="/budget-planner" class="text-white hover:text-gray-300 text-2xl font-medium">Budget Planner</a>
+            <a href="/analytics" class="text-white hover:text-gray-300 text-2xl font-medium">Analytics</a>
+            <a href="/category-management" class="text-white hover:text-gray-300 text-2xl font-medium">Categories</a>
+            <a href="/movement-history" class="text-white hover:text-gray-300 text-2xl font-medium">Movements</a>
+            <a href="/financial-goals" class="text-white hover:text-gray-300 text-2xl font-medium">Financial Goals</a>
+            <a href="/investment-portfolio" class="text-white hover:text-gray-300 text-2xl font-medium">Investment Portfolio</a>
+            <a href="/reports" class="text-white hover:text-gray-300 text-2xl font-medium">Reports</a>
+            <a href="/user-profile" class="text-white hover:text-gray-300 text-2xl font-medium">Profile</a>
         </div>
     </div>
 </nav>

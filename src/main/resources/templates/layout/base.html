@@ -8,15 +8,84 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" th:href="@{/css/style.css}">
+    <style>
+        @media (max-width: 640px) {
+            .container {
+                padding-left: 1rem;
+                padding-right: 1rem;
+            }
+        }
+        /* Add styles for mobile and desktop menu transitions */
+        #mobile-menu, {
+            transition: opacity 0.3s ease-in-out;
+        }
+        body.menu-open {
+            overflow: hidden;
+        }
+
+
+    </style>
     <th:block th:replace="${extraHead} ?: ~{}"></th:block>
 </head>
-<body th:class="${bodyClass}">
+<body th:class="${bodyClass} + ' font-inter bg-gray-100'">
     <div class="flex flex-col min-h-screen">
         <th:block th:replace="~{layout/nav :: nav}"></th:block>
-        <main class="flex-grow">
+        <main class="flex-grow container mx-auto px-4 sm:px-6 lg:px-8 py-8">
             <th:block th:replace="${content}"></th:block>
         </main>
     </div>
     <th:block th:replace="${extraScripts} ?: ~{}"></th:block>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const mobileMenuButton = document.getElementById('mobile-menu-button');
+            const closeMobileMenuButton = document.getElementById('close-mobile-menu');
+            const desktopMenuButton = document.getElementById('desktop-menu-button');
+            const closeDesktopMenuButton = document.getElementById('close-desktop-menu');
+            const mobileMenu = document.getElementById('mobile-menu');
+            const desktopMenu = document.getElementById('desktop-menu');
+
+            function toggleMobileMenu() {
+                mobileMenu.classList.toggle('translate-x-full');
+                document.body.classList.toggle('overflow-hidden');
+            }
+
+            function toggleDesktopMenu() {
+                desktopMenu.classList.toggle('hidden');
+                document.body.classList.toggle('overflow-hidden');
+            }
+
+            if (mobileMenuButton) {
+                mobileMenuButton.addEventListener('click', toggleMobileMenu);
+            }
+
+            if (closeMobileMenuButton) {
+                closeMobileMenuButton.addEventListener('click', toggleMobileMenu);
+            }
+
+            if (desktopMenuButton) {
+                desktopMenuButton.addEventListener('click', toggleDesktopMenu);
+            }
+
+            if (closeDesktopMenuButton) {
+                closeDesktopMenuButton.addEventListener('click', toggleDesktopMenu);
+            }
+
+            // Close mobile menu when clicking on a link
+            if (mobileMenu) {
+                mobileMenu.querySelectorAll('a').forEach(link => {
+                    link.addEventListener('click', toggleMobileMenu);
+                });
+            }
+
+            // Close desktop menu when clicking on a link
+            if (desktopMenu) {
+                desktopMenu.querySelectorAll('a').forEach(link => {
+                    link.addEventListener('click', toggleDesktopMenu);
+                });
+            }
+
+        });
+    </script>
 </body>
 </html>

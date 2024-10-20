@@ -1,0 +1,407 @@
+<th:block th:replace="~{layout/base :: html(
+    title='Financial Reports - Personal Finance Tracker',
+    bodyClass='bg-gray-100',
+    content=~{::content},
+    extraHead=~{::extraHead},
+    extraScripts=~{::extraScripts}
+)}">
+    <th:block th:fragment="extraHead">
+        <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+        <!-- Add this style block -->
+        <style>
+            .chart-container {
+                position: relative;
+                height: 400px;
+                width: 100%;
+            }
+        </style>
+    </th:block>
+
+    <th:block th:fragment="content">
+        <div class="container mx-auto px-4 py-8">
+            <h1 class="text-4xl font-bold mb-8 text-indigo-700">Financial Reports</h1>
+
+            <!-- Report Filters -->
+            <div class="bg-white p-6 rounded-lg shadow-lg mb-8">
+                <h2 class="text-2xl font-semibold mb-4 text-indigo-600">Report Filters</h2>
+                <form id="reportFilters" class="space-y-4">
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                        <div>
+                            <label for="reportType" class="block mb-1 text-sm font-medium text-gray-700">Report Type</label>
+                            <select id="reportType" class="w-full border rounded-md px-3 py-2 focus:ring-indigo-500 focus:border-indigo-500">
+                                <option value="income-expense">Income vs Expense</option>
+                                <option value="category-summary">Category Summary</option>
+                                <option value="cash-flow">Cash Flow</option>
+                                <option value="budget-variance">Budget Variance</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="timeFrame" class="block mb-1 text-sm font-medium text-gray-700">Time Frame</label>
+                            <select id="timeFrame" class="w-full border rounded-md px-3 py-2 focus:ring-indigo-500 focus:border-indigo-500">
+                                <option value="monthly">Monthly</option>
+                                <option value="quarterly">Quarterly</option>
+                                <option value="yearly">Yearly</option>
+                                <option value="custom">Custom</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="startDate" class="block mb-1 text-sm font-medium text-gray-700">Start Date</label>
+                            <input type="date" id="startDate" class="w-full border rounded-md px-3 py-2 focus:ring-indigo-500 focus:border-indigo-500">
+                        </div>
+                        <div>
+                            <label for="endDate" class="block mb-1 text-sm font-medium text-gray-700">End Date</label>
+                            <input type="date" id="endDate" class="w-full border rounded-md px-3 py-2 focus:ring-indigo-500 focus:border-indigo-500">
+                        </div>
+                    </div>
+                    <button type="submit" class="bg-indigo-500 text-white py-2 px-4 rounded-md hover:bg-indigo-600 transition duration-300">Generate Report</button>
+                </form>
+            </div>
+
+            <!-- Report Content -->
+            <div id="reportContent" class="space-y-8">
+                <!-- Report sections will be dynamically added here -->
+            </div>
+        </div>
+    </th:block>
+
+    <th:block th:fragment="extraScripts">
+        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+        <script>
+            const reportContent = document.getElementById('reportContent');
+            const reportForm = document.getElementById('reportFilters');
+            const reportType = document.getElementById('reportType');
+            const timeFrame = document.getElementById('timeFrame');
+            const startDate = document.getElementById('startDate');
+            const endDate = document.getElementById('endDate');
+
+            // Set default dates
+            const today = new Date();
+            const oneMonthAgo = new Date(today.getFullYear(), today.getMonth() - 1, today.getDate());
+            startDate.value = oneMonthAgo.toISOString().split('T')[0];
+            endDate.value = today.toISOString().split('T')[0];
+
+            // Handle report filter submission
+            reportForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                const filters = {
+                    reportType: reportType.value,
+                    timeFrame: timeFrame.value,
+                    startDate: startDate.value,
+                    endDate: endDate.value
+                };
+                generateReport(filters);
+            });
+
+            // Show/hide date inputs based on time frame selection
+            timeFrame.addEventListener('change', () => {
+                const showCustomDates = timeFrame.value === 'custom';
+                startDate.parentElement.style.display = showCustomDates ? 'block' : 'none';
+                endDate.parentElement.style.display = showCustomDates ? 'block' : 'none';
+            });
+
+            async function generateReport(filters) {
+                // Clear previous report content
+                reportContent.innerHTML = '';
+
+                // Get mock data (in a real scenario, this would be an API call)
+                const mockData = getMockData(filters);
+
+                switch (filters.reportType) {
+                    case 'income-expense':
+                        createIncomeExpenseReport(mockData);
+                        break;
+                    case 'category-summary':
+                        createCategorySummaryReport(mockData);
+                        break;
+                    case 'cash-flow':
+                        createCashFlowReport(mockData);
+                        break;
+                    case 'budget-variance':
+                        createBudgetVarianceReport(mockData);
+                        break;
+                }
+            }
+
+            function createIncomeExpenseReport(data) {
+                const section = createReportSection('Income vs Expense Report');
+                
+                // Summary Table
+                const summaryTable = createTable(['Category', 'Amount']);
+                summaryTable.appendChild(createTableRow('Total Income', `$${data.totalIncome.toFixed(2)}`));
+                summaryTable.appendChild(createTableRow('Total Expenses', `$${data.totalExpenses.toFixed(2)}`));
+                summaryTable.appendChild(createTableRow('Net Income', `$${(data.totalIncome - data.totalExpenses).toFixed(2)}`));
+                section.appendChild(summaryTable);
+
+                // Chart
+                const chartContainer = document.createElement('div');
+                chartContainer.className = 'chart-container';
+                const chartCanvas = document.createElement('canvas');
+                chartContainer.appendChild(chartCanvas);
+                section.appendChild(chartContainer);
+
+                new Chart(chartCanvas.getContext('2d'), {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['Income', 'Expenses'],
+                        datasets: [{
+                            data: [data.totalIncome, data.totalExpenses],
+                            backgroundColor: ['rgb(34, 197, 94)', 'rgb(239, 68, 68)']
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            title: {
+                                display: true,
+                                text: 'Income vs Expenses'
+                            }
+                        }
+                    }
+                });
+            }
+
+            function createCategorySummaryReport(data) {
+                const section = createReportSection('Category Summary Report');
+
+                // Summary Table
+                const summaryTable = createTable(['Category', 'Amount', '% of Total']);
+                data.categories.forEach(category => {
+                    summaryTable.appendChild(createTableRow(
+                        category.name,
+                        `$${category.amount.toFixed(2)}`,
+                        `${((category.amount / data.totalExpenses) * 100).toFixed(2)}%`
+                    ));
+                });
+                section.appendChild(summaryTable);
+
+                // Chart
+                const chartContainer = document.createElement('div');
+                chartContainer.className = 'chart-container';
+                const chartCanvas = document.createElement('canvas');
+                chartContainer.appendChild(chartCanvas);
+                section.appendChild(chartContainer);
+
+                new Chart(chartCanvas.getContext('2d'), {
+                    type: 'pie',
+                    data: {
+                        labels: data.categories.map(c => c.name),
+                        datasets: [{
+                            data: data.categories.map(c => c.amount),
+                            backgroundColor: [
+                                'rgb(59, 130, 246)', 'rgb(16, 185, 129)', 'rgb(249, 115, 22)',
+                                'rgb(217, 70, 239)', 'rgb(245, 158, 11)', 'rgb(99, 102, 241)'
+                            ]
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            title: {
+                                display: true,
+                                text: 'Expense Categories'
+                            }
+                        }
+                    }
+                });
+            }
+
+            function createCashFlowReport(data) {
+                const section = createReportSection('Cash Flow Report');
+
+                // Cash Flow Table
+                const cashFlowTable = createTable(['Month', 'Income', 'Expenses', 'Net Cash Flow']);
+                data.cashFlow.forEach(month => {
+                    cashFlowTable.appendChild(createTableRow(
+                        month.name,
+                        `$${month.income.toFixed(2)}`,
+                        `$${month.expenses.toFixed(2)}`,
+                        `$${(month.income - month.expenses).toFixed(2)}`
+                    ));
+                });
+                section.appendChild(cashFlowTable);
+
+                // Chart
+                const chartContainer = document.createElement('div');
+                chartContainer.className = 'chart-container';
+                const chartCanvas = document.createElement('canvas');
+                chartContainer.appendChild(chartCanvas);
+                section.appendChild(chartContainer);
+
+                new Chart(chartCanvas.getContext('2d'), {
+                    type: 'line',
+                    data: {
+                        labels: data.cashFlow.map(m => m.name),
+                        datasets: [
+                            {
+                                label: 'Income',
+                                data: data.cashFlow.map(m => m.income),
+                                borderColor: 'rgb(34, 197, 94)',
+                                backgroundColor: 'rgba(34, 197, 94, 0.1)',
+                                fill: true
+                            },
+                            {
+                                label: 'Expenses',
+                                data: data.cashFlow.map(m => m.expenses),
+                                borderColor: 'rgb(239, 68, 68)',
+                                backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                                fill: true
+                            }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                title: {
+                                    display: true,
+                                    text: 'Amount ($)'
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+
+            function createBudgetVarianceReport(data) {
+                const section = createReportSection('Budget Variance Report');
+
+                // Budget Variance Table
+                const varianceTable = createTable(['Category', 'Budgeted', 'Actual', 'Variance', '% Variance']);
+                data.budgetVariance.forEach(category => {
+                    const variance = category.actual - category.budgeted;
+                    const percentVariance = (variance / category.budgeted) * 100;
+                    varianceTable.appendChild(createTableRow(
+                        category.name,
+                        `$${category.budgeted.toFixed(2)}`,
+                        `$${category.actual.toFixed(2)}`,
+                        `$${variance.toFixed(2)}`,
+                        `${percentVariance.toFixed(2)}%`
+                    ));
+                });
+                section.appendChild(varianceTable);
+
+                // Chart
+                const chartContainer = document.createElement('div');
+                chartContainer.className = 'chart-container';
+                const chartCanvas = document.createElement('canvas');
+                chartContainer.appendChild(chartCanvas);
+                section.appendChild(chartContainer);
+
+                new Chart(chartCanvas.getContext('2d'), {
+                    type: 'bar',
+                    data: {
+                        labels: data.budgetVariance.map(c => c.name),
+                        datasets: [
+                            {
+                                label: 'Budgeted',
+                                data: data.budgetVariance.map(c => c.budgeted),
+                                backgroundColor: 'rgba(59, 130, 246, 0.6)'
+                            },
+                            {
+                                label: 'Actual',
+                                data: data.budgetVariance.map(c => c.actual),
+                                backgroundColor: 'rgba(16, 185, 129, 0.6)'
+                            }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                title: {
+                                    display: true,
+                                    text: 'Amount ($)'
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+
+            // Helper functions
+            function createReportSection(title) {
+                const section = document.createElement('div');
+                section.className = 'bg-white p-6 rounded-lg shadow-lg';
+                const heading = document.createElement('h2');
+                heading.className = 'text-2xl font-semibold mb-4 text-indigo-600';
+                heading.textContent = title;
+                section.appendChild(heading);
+                reportContent.appendChild(section);
+                return section;
+            }
+
+            function createTable(headers) {
+                const table = document.createElement('table');
+                table.className = 'w-full mb-4';
+                const thead = document.createElement('thead');
+                const headerRow = document.createElement('tr');
+                headers.forEach(header => {
+                    const th = document.createElement('th');
+                    th.className = 'text-left py-2 px-4 bg-indigo-100 font-semibold text-indigo-800';
+                    th.textContent = header;
+                    headerRow.appendChild(th);
+                });
+                thead.appendChild(headerRow);
+                table.appendChild(thead);
+                return table;
+            }
+
+            function createTableRow(...cells) {
+                const row = document.createElement('tr');
+                cells.forEach(cell => {
+                    const td = document.createElement('td');
+                    td.className = 'py-2 px-4 border-b';
+                    td.textContent = cell;
+                    row.appendChild(td);
+                });
+                return row;
+            }
+
+            function getMockData(filters) {
+                // In a real scenario, this data would be filtered based on the selected date range
+                return {
+                    totalIncome: 10000,
+                    totalExpenses: 7500,
+                    categories: [
+                        { name: 'Housing', amount: 2500 },
+                        { name: 'Transportation', amount: 1000 },
+                        { name: 'Food', amount: 1500 },
+                        { name: 'Utilities', amount: 800 },
+                        { name: 'Entertainment', amount: 700 },
+                        { name: 'Healthcare', amount: 1000 }
+                    ],
+                    cashFlow: [
+                        { name: 'Jan', income: 9000, expenses: 7000 },
+                        { name: 'Feb', income: 9500, expenses: 7200 },
+                        { name: 'Mar', income: 10000, expenses: 7500 },
+                        { name: 'Apr', income: 10000, expenses: 7800 },
+                        { name: 'May', income: 10500, expenses: 8000 },
+                        { name: 'Jun', income: 11000, expenses: 8200 }
+                    ],
+                    budgetVariance: [
+                        { name: 'Housing', budgeted: 2400, actual: 2500 },
+                        { name: 'Transportation', budgeted: 1200, actual: 1000 },
+                        { name: 'Food', budgeted: 1400, actual: 1500 },
+                        { name: 'Utilities', budgeted: 750, actual: 800 },
+                        { name: 'Entertainment', budgeted: 600, actual: 700 },
+                        { name: 'Healthcare', budgeted: 1100, actual: 1000 }
+                    ]
+                };
+            }
+
+            // Generate a default report on page load
+            generateReport({
+                reportType: reportType.value,
+                timeFrame: timeFrame.value,
+                startDate: startDate.value,
+                endDate: endDate.value
+            });
+        </script>
+    </th:block>
+</th:block>

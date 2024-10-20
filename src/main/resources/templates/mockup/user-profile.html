@@ -2,49 +2,101 @@
     title='User Profile - Personal Finance Tracker',
     bodyClass='bg-gray-100',
     content=~{::content},
-    extraHead=~{},
+    extraHead=~{::extraHead},
     extraScripts=~{::extraScripts}
 )}">
+    <th:block th:fragment="extraHead">
+        <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    </th:block>
+
     <th:block th:fragment="content">
         <div class="container mx-auto px-4 py-8">
-            <h1 class="text-3xl font-bold mb-8">User Profile</h1>
+            <h1 class="text-4xl font-bold mb-8 text-indigo-700">User Profile</h1>
 
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 <!-- User Information -->
-                <div class="bg-white p-6 rounded-lg shadow">
-                    <h2 class="text-xl font-semibold mb-4">User Information</h2>
-                    <form id="userInfoForm" class="space-y-4">
-                        <div>
-                            <label for="username" class="block mb-1">Username</label>
-                            <input type="text" id="username" class="w-full border rounded px-3 py-2" readonly>
+                <div class="bg-white p-6 rounded-lg shadow-lg col-span-1 lg:col-span-2">
+                    <h2 class="text-2xl font-semibold mb-6 text-indigo-600">User Information</h2>
+                    <form id="userInfoForm" class="space-y-6">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <label for="username" class="block mb-1 text-sm font-medium text-gray-700">Username</label>
+                                <input type="text" id="username" class="w-full border rounded-md px-3 py-2 bg-gray-100" readonly>
+                            </div>
+                            <div>
+                                <label for="email" class="block mb-1 text-sm font-medium text-gray-700">Email</label>
+                                <input type="email" id="email" class="w-full border rounded-md px-3 py-2 focus:ring-indigo-500 focus:border-indigo-500" required>
+                            </div>
+                            <div>
+                                <label for="firstName" class="block mb-1 text-sm font-medium text-gray-700">First Name</label>
+                                <input type="text" id="firstName" class="w-full border rounded-md px-3 py-2 focus:ring-indigo-500 focus:border-indigo-500" required>
+                            </div>
+                            <div>
+                                <label for="lastName" class="block mb-1 text-sm font-medium text-gray-700">Last Name</label>
+                                <input type="text" id="lastName" class="w-full border rounded-md px-3 py-2 focus:ring-indigo-500 focus:border-indigo-500" required>
+                            </div>
                         </div>
                         <div>
-                            <label for="email" class="block mb-1">Email</label>
-                            <input type="email" id="email" class="w-full border rounded px-3 py-2" required>
+                            <label for="bio" class="block mb-1 text-sm font-medium text-gray-700">Bio</label>
+                            <textarea id="bio" rows="3" class="w-full border rounded-md px-3 py-2 focus:ring-indigo-500 focus:border-indigo-500"></textarea>
                         </div>
-                        <button type="submit" class="w-full bg-blue-500 text-white py-2 rounded hover:bg-blue-600">Update Information</button>
+                        <button type="submit" class="w-full bg-indigo-500 text-white py-2 rounded-md hover:bg-indigo-600 transition duration-300">Update Information</button>
                     </form>
                 </div>
 
                 <!-- Change Password -->
-                <div class="bg-white p-6 rounded-lg shadow">
-                    <h2 class="text-xl font-semibold mb-4">Change Password</h2>
+                <div class="bg-white p-6 rounded-lg shadow-lg">
+                    <h2 class="text-2xl font-semibold mb-6 text-indigo-600">Change Password</h2>
                     <form id="changePasswordForm" class="space-y-4">
                         <div>
-                            <label for="currentPassword" class="block mb-1">Current Password</label>
-                            <input type="password" id="currentPassword" class="w-full border rounded px-3 py-2" required>
+                            <label for="currentPassword" class="block mb-1 text-sm font-medium text-gray-700">Current Password</label>
+                            <input type="password" id="currentPassword" class="w-full border rounded-md px-3 py-2 focus:ring-indigo-500 focus:border-indigo-500" required>
                         </div>
                         <div>
-                            <label for="newPassword" class="block mb-1">New Password</label>
-                            <input type="password" id="newPassword" class="w-full border rounded px-3 py-2" required>
+                            <label for="newPassword" class="block mb-1 text-sm font-medium text-gray-700">New Password</label>
+                            <input type="password" id="newPassword" class="w-full border rounded-md px-3 py-2 focus:ring-indigo-500 focus:border-indigo-500" required>
                         </div>
                         <div>
-                            <label for="confirmPassword" class="block mb-1">Confirm New Password</label>
-                            <input type="password" id="confirmPassword" class="w-full border rounded px-3 py-2" required>
+                            <label for="confirmPassword" class="block mb-1 text-sm font-medium text-gray-700">Confirm New Password</label>
+                            <input type="password" id="confirmPassword" class="w-full border rounded-md px-3 py-2 focus:ring-indigo-500 focus:border-indigo-500" required>
                         </div>
-                        <button type="submit" class="w-full bg-blue-500 text-white py-2 rounded hover:bg-blue-600">Change Password</button>
+                        <button type="submit" class="w-full bg-indigo-500 text-white py-2 rounded-md hover:bg-indigo-600 transition duration-300">Change Password</button>
                     </form>
                 </div>
+            </div>
+
+            <!-- Preferences Section -->
+            <div class="mt-8 bg-white p-6 rounded-lg shadow-lg">
+                <h2 class="text-2xl font-semibold mb-6 text-indigo-600">Preferences</h2>
+                <form id="preferencesForm" class="space-y-6">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label for="currency" class="block mb-1 text-sm font-medium text-gray-700">Preferred Currency</label>
+                            <select id="currency" class="w-full border rounded-md px-3 py-2 focus:ring-indigo-500 focus:border-indigo-500">
+                                <option value="USD">USD</option>
+                                <option value="EUR">EUR</option>
+                                <option value="GBP">GBP</option>
+                                <option value="JPY">JPY</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="language" class="block mb-1 text-sm font-medium text-gray-700">Language</label>
+                            <select id="language" class="w-full border rounded-md px-3 py-2 focus:ring-indigo-500 focus:border-indigo-500">
+                                <option value="en">English</option>
+                                <option value="es">Spanish</option>
+                                <option value="fr">French</option>
+                                <option value="de">German</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="flex items-center">
+                            <input type="checkbox" id="emailNotifications" class="form-checkbox h-5 w-5 text-indigo-600">
+                            <span class="ml-2 text-sm text-gray-700">Receive email notifications</span>
+                        </label>
+                    </div>
+                    <button type="submit" class="w-full bg-indigo-500 text-white py-2 rounded-md hover:bg-indigo-600 transition duration-300">Save Preferences</button>
+                </form>
             </div>
         </div>
     </th:block>
@@ -53,21 +105,53 @@
         <script>
             // Fetch user information
             async function fetchUserInfo() {
-                // Implement user info fetching
-                document.getElementById('username').value = 'JohnDoe';
-                document.getElementById('email').value = 'john.doe@example.com';
+                // Mock user data
+                const userData = {
+                    username: 'JohnDoe',
+                    email: 'john.doe@example.com',
+                    firstName: 'John',
+                    lastName: 'Doe',
+                    bio: 'I love managing my finances!',
+                    currency: 'USD',
+                    language: 'en',
+                    emailNotifications: true
+                };
+
+                document.getElementById('username').value = userData.username;
+                document.getElementById('email').value = userData.email;
+                document.getElementById('firstName').value = userData.firstName;
+                document.getElementById('lastName').value = userData.lastName;
+                document.getElementById('bio').value = userData.bio;
+                document.getElementById('currency').value = userData.currency;
+                document.getElementById('language').value = userData.language;
+                document.getElementById('emailNotifications').checked = userData.emailNotifications;
             }
 
             // Update user information
             document.getElementById('userInfoForm').addEventListener('submit', async (e) => {
                 e.preventDefault();
                 // Implement user info update
+                alert('User information updated successfully!');
             });
 
             // Change password
             document.getElementById('changePasswordForm').addEventListener('submit', async (e) => {
                 e.preventDefault();
+                const newPassword = document.getElementById('newPassword').value;
+                const confirmPassword = document.getElementById('confirmPassword').value;
+                if (newPassword !== confirmPassword) {
+                    alert('New passwords do not match!');
+                    return;
+                }
                 // Implement password change
+                alert('Password changed successfully!');
+            });
+
+            // Save preferences
+            document.getElementById('preferencesForm').addEventListener('submit', async (e) => {
+                e.preventDefault();
+                // Implement preferences save
+                alert('Preferences saved successfully!');
             });
 
             fetchUserInfo();

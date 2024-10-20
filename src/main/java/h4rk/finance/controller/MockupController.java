@@ -36,4 +36,10 @@ public class MockupController {
         model.addAttribute("pageTitle", "User Profile");
         return "mockup/user-profile";
     }
+
+    @GetMapping("/reports")
+    public String reports(Model model) {
+        model.addAttribute("pageTitle", "Reports");
+        return "mockup/reports";
+    }
 }

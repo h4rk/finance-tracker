@@ -11,7 +11,12 @@
     <th:block th:replace="${extraHead} ?: ~{}"></th:block>
 </head>
 <body th:class="${bodyClass}">
-    <th:block th:replace="${content}"></th:block>
+    <div class="flex flex-col min-h-screen">
+        <th:block th:replace="~{layout/nav :: nav}"></th:block>
+        <main class="flex-grow">
+            <th:block th:replace="${content}"></th:block>
+        </main>
+    </div>
     <th:block th:replace="${extraScripts} ?: ~{}"></th:block>
 </body>
 </html>

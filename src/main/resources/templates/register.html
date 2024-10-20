@@ -1,4 +1,10 @@
-<th:block th:replace="layout/base :: html(title='Registrazione - Personal Finance Tracker', bodyClass='h-full flex items-center justify-center bg-gradient-to-br from-indigo-100 to-purple-200')">
+<th:block th:replace="~{layout/base :: html(
+    title='Registrazione - Personal Finance Tracker',
+    bodyClass='h-full flex items-center justify-center bg-gradient-to-br from-indigo-100 to-purple-200',
+    content=~{::content},
+    extraHead=~{},
+    extraScripts=~{}
+)}">
     <th:block th:fragment="content">
         <div class="max-w-md w-full space-y-8 bg-white p-10 rounded-xl shadow-2xl transform transition-all">
             <div>

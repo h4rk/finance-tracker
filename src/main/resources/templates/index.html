@@ -1,17 +1,17 @@
 <th:block th:replace="~{layout/base :: html(
     title='Personal Finance Tracker',
-    bodyClass='h-full bg-gray-100',
+    bodyClass='bg-gray-100',
     content=~{::content},
     extraHead=~{},
     extraScripts=~{::extraScripts}
 )}">
     <th:block th:fragment="content">
         <div class="min-h-full">
-            <header class="bg-white shadow">
+            <!--  <header class="bg-white shadow">
                 <div class="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
                     <h1 class="text-3xl font-bold tracking-tight text-gray-900">Personal Finance Tracker</h1>
                 </div>
-            </header>
+            </header> -->
 
             <main>
             <div class="mx-auto max-w-[1800px] py-6 sm:px-6 lg:px-8">
@@ -69,8 +69,6 @@
         <div th:replace="~{fragments/details :: categoryDetails}"></div>
         <div th:replace="~{fragments/notification :: notification}"></div>
         <div th:replace="~{fragments/budgetModal :: budgetModal}"></div>
-
-        
     </th:block>
     
     <th:block th:fragment="extraScripts">

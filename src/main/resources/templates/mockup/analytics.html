@@ -56,27 +56,121 @@
     </th:block>
 
     <th:block th:fragment="extraScripts">
+        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
         <script>
-            // Implement chart initialization and data fetching here
-            // Example:
-            const ctx = document.getElementById('monthlyOverviewChart').getContext('2d');
-            new Chart(ctx, {
+            // Monthly Overview Chart
+            const monthlyOverviewCtx = document.getElementById('monthlyOverviewChart').getContext('2d');
+            new Chart(monthlyOverviewCtx, {
                 type: 'bar',
                 data: {
                     labels: ['Income', 'Expenses', 'Savings'],
                     datasets: [{
-                        label: 'Amount',
+                        label: 'Amount ($)',
                         data: [5000, 3500, 1500],
                         backgroundColor: ['#34D399', '#F87171', '#60A5FA']
                     }]
                 },
                 options: {
                     responsive: true,
-                    maintainAspectRatio: false
+                    maintainAspectRatio: false,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: 'Monthly Overview - April 2023'
+                        }
+                    }
                 }
             });
 
-            // Implement other charts similarly
+            // Yearly Comparison Chart
+            const yearlyComparisonCtx = document.getElementById('yearlyComparisonChart').getContext('2d');
+            new Chart(yearlyComparisonCtx, {
+                type: 'line',
+                data: {
+                    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+                    datasets: [{
+                        label: '2022',
+                        data: [4000, 4200, 4100, 4300, 4500, 4800, 5000, 5200, 5100, 5300, 5500, 5800],
+                        borderColor: '#60A5FA',
+                        fill: false
+                    }, {
+                        label: '2023',
+                        data: [4200, 4400, 4600, 5000, 5200, 5500, 5700, 5900, 6100, 6300, 6500, 6800],
+                        borderColor: '#34D399',
+                        fill: false
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: 'Yearly Income Comparison'
+                        }
+                    }
+                }
+            });
+
+            // Category Breakdown Chart
+            const categoryBreakdownCtx = document.getElementById('categoryBreakdownChart').getContext('2d');
+            new Chart(categoryBreakdownCtx, {
+                type: 'pie',
+                data: {
+                    labels: ['Housing', 'Transportation', 'Food', 'Utilities', 'Entertainment', 'Healthcare', 'Other'],
+                    datasets: [{
+                        data: [1200, 500, 600, 300, 400, 200, 300],
+                        backgroundColor: [
+                            '#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF', '#FF9F40', '#C9CBCF'
+                        ]
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: 'Expense Breakdown - April 2023'
+                        }
+                    }
+                }
+            });
+
+            // Savings Trend Chart
+            const savingsTrendCtx = document.getElementById('savingsTrendChart').getContext('2d');
+            new Chart(savingsTrendCtx, {
+                type: 'line',
+                data: {
+                    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+                    datasets: [{
+                        label: 'Savings',
+                        data: [1000, 1200, 1500, 1800, 2000, 2300, 2600, 2900, 3200, 3500, 3800, 4100],
+                        borderColor: '#60A5FA',
+                        fill: true,
+                        backgroundColor: 'rgba(96, 165, 250, 0.2)'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: 'Savings Trend - 2023'
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: 'Amount ($)'
+                            }
+                        }
+                    }
+                }
+            });
         </script>
     </th:block>
 </th:block>

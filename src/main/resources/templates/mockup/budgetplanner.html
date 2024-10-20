@@ -2,50 +2,55 @@
     title='Budget Planner - Personal Finance Tracker',
     bodyClass='bg-gray-100',
     content=~{::content},
-    extraHead=~{},
+    extraHead=~{::extraHead},
     extraScripts=~{::extraScripts}
 )}">
+    <th:block th:fragment="extraHead">
+        <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    </th:block>
+
     <th:block th:fragment="content">
         <div class="container mx-auto px-4 py-8">
-            <h1 class="text-3xl font-bold mb-8">Budget Planner</h1>
+            <h1 class="text-4xl font-bold mb-8 text-indigo-700">Budget Planner</h1>
 
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-            <!-- Budget Setting Section -->
-            <div class="bg-white p-6 rounded-lg shadow">
-                <h2 class="text-xl font-semibold mb-4">Set Category Budgets</h2>
-                <form id="budgetForm" class="space-y-4">
-                    <div id="categoryBudgets">
-                        <!-- Category budget inputs will be dynamically added here -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <!-- Budget Setting Section -->
+                <div class="bg-white p-6 rounded-lg shadow-lg">
+                    <h2 class="text-2xl font-semibold mb-4 text-indigo-600">Set Category Budgets</h2>
+                    <form id="budgetForm" class="space-y-4">
+                        <div id="categoryBudgets" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <!-- Category budget inputs will be dynamically added here -->
+                        </div>
+                        <button type="submit" class="w-full bg-indigo-500 text-white py-2 rounded-lg hover:bg-indigo-600 transition duration-300">Save Budgets</button>
+                    </form>
+                </div>
+
+                <!-- Budget Overview Section -->
+                <div class="bg-white p-6 rounded-lg shadow-lg">
+                    <h2 class="text-2xl font-semibold mb-4 text-indigo-600">Budget Overview</h2>
+                    <div class="h-64">
+                        <canvas id="budgetChart"></canvas>
                     </div>
-                    <button type="submit" class="w-full bg-blue-500 text-white py-2 rounded hover:bg-blue-600">Save Budgets</button>
-                </form>
-            </div>
-
-            <!-- Budget Overview Section -->
-            <div class="bg-white p-6 rounded-lg shadow">
-                <h2 class="text-xl font-semibold mb-4">Budget Overview</h2>
-                <div class="h-64">
-                    <canvas id="budgetChart"></canvas>
                 </div>
             </div>
-        </div>
 
-        <!-- Monthly Spending Breakdown -->
-        <div class="mt-8 bg-white p-6 rounded-lg shadow">
-            <h2 class="text-xl font-semibold mb-4">Monthly Spending Breakdown</h2>
-            <div class="overflow-x-auto">
-                <table class="w-full text-left">
-                    <thead>
-                        <tr>
-                            <th class="pb-4 font-semibold">Category</th>
-                            <th class="pb-4 font-semibold">Budget</th>
-                            <th class="pb-4 font-semibold">Spent</th>
-                            <th class="pb-4 font-semibold">Remaining</th>
-                        </tr>
-                    </thead>
-                    <tbody id="spendingBreakdown">
-                        <!-- Spending breakdown rows will be dynamically added here -->
-                       </tbody>
+            <!-- Monthly Spending Breakdown -->
+            <div class="mt-8 bg-white p-6 rounded-lg shadow-lg">
+                <h2 class="text-2xl font-semibold mb-4 text-indigo-600">Monthly Spending Breakdown</h2>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left">
+                        <thead>
+                            <tr class="bg-indigo-100">
+                                <th class="py-3 px-4 font-semibold text-indigo-800">Category</th>
+                                <th class="py-3 px-4 font-semibold text-indigo-800">Budget</th>
+                                <th class="py-3 px-4 font-semibold text-indigo-800">Spent</th>
+                                <th class="py-3 px-4 font-semibold text-indigo-800">Remaining</th>
+                                <th class="py-3 px-4 font-semibold text-indigo-800">Progress</th>
+                            </tr>
+                        </thead>
+                        <tbody id="spendingBreakdown">
+                            <!-- Spending breakdown rows will be dynamically added here -->
+                        </tbody>
                     </table>
                 </div>
             </div>
@@ -53,18 +58,29 @@
     </th:block>
 
     <th:block th:fragment="extraScripts">
+        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
         <script>
         // Fetch categories and populate budget form
         async function fetchCategories() {
-            const response = await fetch('/cats');
-            const categories = await response.json();
+            // Mock categories data
+            const categories = [
+                { id: 1, name: 'Groceries' },
+                { id: 2, name: 'Utilities' },
+                { id: 3, name: 'Entertainment' },
+                { id: 4, name: 'Transportation' },
+                { id: 5, name: 'Housing' },
+                { id: 6, name: 'Healthcare' },
+                { id: 7, name: 'Dining Out' },
+                { id: 8, name: 'Shopping' }
+            ];
+            
             const categoryBudgets = document.getElementById('categoryBudgets');
             
             categories.forEach(category => {
                 const div = document.createElement('div');
                 div.innerHTML = `
-                    <label class="block mb-2">${category.name}</label>
-                    <input type="number" name="budget_${category.id}" class="w-full border rounded px-3 py-2" placeholder="Set budget">
+                    <label class="block mb-2 text-sm font-medium text-gray-700">${category.name}</label>
+                    <input type="number" name="budget_${category.id}" class="w-full border rounded-md px-3 py-2 focus:ring-indigo-500 focus:border-indigo-500" placeholder="Set budget">
                 `;
                 categoryBudgets.appendChild(div);
             });
@@ -72,23 +88,31 @@
 
         // Fetch monthly analytics and update chart
         async function updateBudgetChart() {
-            const response = await fetch('/analytics/monthly');
-            const data = await response.json();
+            // Mock data for monthly analytics
+            const data = {
+                totalIncome: 5000,
+                totalExpenses: 3500,
+                totalSavings: 1500
+            };
             
             const ctx = document.getElementById('budgetChart').getContext('2d');
             new Chart(ctx, {
-                type: 'bar',
+                type: 'doughnut',
                 data: {
                     labels: ['Income', 'Expenses', 'Savings'],
                     datasets: [{
-                        label: 'Amount',
                         data: [data.totalIncome, data.totalExpenses, data.totalSavings],
                         backgroundColor: ['#34D399', '#F87171', '#60A5FA']
                     }]
                 },
                 options: {
                     responsive: true,
-                    maintainAspectRatio: false
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom'
+                        }
+                    }
                 }
             });
         }
@@ -101,12 +125,18 @@
             for (const [category, budget] of Object.entries(budgets)) {
                 const spent = spending[category] || 0;
                 const remaining = budget - spent;
+                const percentage = (spent / budget) * 100;
                 const row = `
-                    <tr>
-                        <td class="py-2">${category}</td>
-                        <td class="py-2">$${budget.toFixed(2)}</td>
-                        <td class="py-2">$${spent.toFixed(2)}</td>
-                        <td class="py-2 ${remaining >= 0 ? 'text-green-600' : 'text-red-600'}">$${remaining.toFixed(2)}</td>
+                    <tr class="border-b">
+                        <td class="py-3 px-4">${category}</td>
+                        <td class="py-3 px-4">$${budget.toFixed(2)}</td>
+                        <td class="py-3 px-4">$${spent.toFixed(2)}</td>
+                        <td class="py-3 px-4 ${remaining >= 0 ? 'text-green-600' : 'text-red-600'}">$${remaining.toFixed(2)}</td>
+                        <td class="py-3 px-4">
+                            <div class="w-full bg-gray-200 rounded-full h-2.5">
+                                <div class="bg-indigo-600 h-2.5 rounded-full" style="width: ${Math.min(percentage, 100)}%"></div>
+                            </div>
+                        </td>
                     </tr>
                 `;
                 tbody.innerHTML += row;
@@ -122,12 +152,22 @@
             const mockBudgets = {
                 'Groceries': 500,
                 'Utilities': 200,
-                'Entertainment': 150
+                'Entertainment': 150,
+                'Transportation': 300,
+                'Housing': 1200,
+                'Healthcare': 250,
+                'Dining Out': 200,
+                'Shopping': 150
             };
             const mockSpending = {
                 'Groceries': 450,
                 'Utilities': 180,
-                'Entertainment': 200
+                'Entertainment': 200,
+                'Transportation': 280,
+                'Housing': 1200,
+                'Healthcare': 100,
+                'Dining Out': 220,
+                'Shopping': 180
             };
             updateSpendingBreakdown(mockBudgets, mockSpending);
         }
@@ -140,6 +180,7 @@
             console.log('Budgets set:', budgets);
             // Here you would typically send this data to the server
             // await fetch('/set-budgets', { method: 'POST', body: formData });
+            alert('Budgets saved successfully!');
         });
 
         init();

@@ -1,0 +1,82 @@
+<th:block th:replace="~{layout/base :: html(
+    title='Analytics - Personal Finance Tracker',
+    bodyClass='bg-gray-100',
+    content=~{::content},
+    extraHead=~{::extraHead},
+    extraScripts=~{::extraScripts}
+)}">
+    <th:block th:fragment="extraHead">
+        <style>
+            .chart-container {
+                position: relative;
+                height: 300px;
+                width: 100%;
+            }
+        </style>
+    </th:block>
+
+    <th:block th:fragment="content">
+        <div class="container mx-auto px-4 py-8">
+            <h1 class="text-3xl font-bold mb-8">Analytics</h1>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <!-- Monthly Overview -->
+                <div class="bg-white p-6 rounded-lg shadow">
+                    <h2 class="text-xl font-semibold mb-4">Monthly Overview</h2>
+                    <div class="chart-container">
+                        <canvas id="monthlyOverviewChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Yearly Comparison -->
+                <div class="bg-white p-6 rounded-lg shadow">
+                    <h2 class="text-xl font-semibold mb-4">Yearly Comparison</h2>
+                    <div class="chart-container">
+                        <canvas id="yearlyComparisonChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Category Breakdown -->
+                <div class="bg-white p-6 rounded-lg shadow">
+                    <h2 class="text-xl font-semibold mb-4">Category Breakdown</h2>
+                    <div class="chart-container">
+                        <canvas id="categoryBreakdownChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Savings Trend -->
+                <div class="bg-white p-6 rounded-lg shadow">
+                    <h2 class="text-xl font-semibold mb-4">Savings Trend</h2>
+                    <div class="chart-container">
+                        <canvas id="savingsTrendChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </th:block>
+
+    <th:block th:fragment="extraScripts">
+        <script>
+            // Implement chart initialization and data fetching here
+            // Example:
+            const ctx = document.getElementById('monthlyOverviewChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['Income', 'Expenses', 'Savings'],
+                    datasets: [{
+                        label: 'Amount',
+                        data: [5000, 3500, 1500],
+                        backgroundColor: ['#34D399', '#F87171', '#60A5FA']
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false
+                }
+            });
+
+            // Implement other charts similarly
+        </script>
+    </th:block>
+</th:block>

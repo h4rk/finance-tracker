@@ -1,0 +1,78 @@
+<th:block th:replace="~{layout/base :: html(
+    title='Category Management - Personal Finance Tracker',
+    bodyClass='bg-gray-100',
+    content=~{::content},
+    extraHead=~{},
+    extraScripts=~{::extraScripts}
+)}">
+    <th:block th:fragment="content">
+        <div class="container mx-auto px-4 py-8">
+            <h1 class="text-3xl font-bold mb-8">Category Management</h1>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <!-- Category List -->
+                <div class="bg-white p-6 rounded-lg shadow">
+                    <h2 class="text-xl font-semibold mb-4">Categories</h2>
+                    <ul id="categoryList" class="space-y-2">
+                        <!-- Categories will be dynamically added here -->
+                    </ul>
+                </div>
+
+                <!-- Add/Edit Category Form -->
+                <div class="bg-white p-6 rounded-lg shadow">
+                    <h2 class="text-xl font-semibold mb-4">Add/Edit Category</h2>
+                    <form id="categoryForm" class="space-y-4">
+                        <input type="hidden" id="categoryId">
+                        <div>
+                            <label for="categoryName" class="block mb-1">Name</label>
+                            <input type="text" id="categoryName" class="w-full border rounded px-3 py-2" required>
+                        </div>
+                        <div>
+                            <label for="categoryType" class="block mb-1">Type</label>
+                            <select id="categoryType" class="w-full border rounded px-3 py-2" required>
+                                <option value="INCOME">Income</option>
+                                <option value="EXPENSE">Expense</option>
+                            </select>
+                        </div>
+                        <button type="submit" class="w-full bg-blue-500 text-white py-2 rounded hover:bg-blue-600">Save Category</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </th:block>
+
+    <th:block th:fragment="extraScripts">
+        <script>
+            // Fetch and display categories
+            async function fetchCategories() {
+                const response = await fetch('/cats');
+                const categories = await response.json();
+                const categoryList = document.getElementById('categoryList');
+                categoryList.innerHTML = '';
+                categories.forEach(category => {
+                    const li = document.createElement('li');
+                    li.innerHTML = `
+                        <div class="flex justify-between items-center">
+                            <span>${category.name} (${category.type})</span>
+                            <button class="text-blue-500 hover:text-blue-700" onclick="editCategory(${category.id})">Edit</button>
+                        </div>
+                    `;
+                    categoryList.appendChild(li);
+                });
+            }
+
+            // Edit category
+            function editCategory(id) {
+                // Implement edit functionality
+            }
+
+            // Form submission
+            document.getElementById('categoryForm').addEventListener('submit', async (e) => {
+                e.preventDefault();
+                // Implement form submission
+            });
+
+            fetchCategories();
+        </script>
+    </th:block>
+</th:block>

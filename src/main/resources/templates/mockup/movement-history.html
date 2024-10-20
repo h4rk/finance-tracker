@@ -1,0 +1,71 @@
+<th:block th:replace="~{layout/base :: html(
+    title='Movement History - Personal Finance Tracker',
+    bodyClass='bg-gray-100',
+    content=~{::content},
+    extraHead=~{},
+    extraScripts=~{::extraScripts}
+)}">
+    <th:block th:fragment="content">
+        <div class="container mx-auto px-4 py-8">
+            <h1 class="text-3xl font-bold mb-8">Movement History</h1>
+
+            <div class="bg-white p-6 rounded-lg shadow">
+                <div class="mb-4 flex justify-between items-center">
+                    <input type="text" id="searchInput" placeholder="Search movements..." class="border rounded px-3 py-2">
+                    <select id="filterSelect" class="border rounded px-3 py-2">
+                        <option value="all">All</option>
+                        <option value="income">Income</option>
+                        <option value="expense">Expense</option>
+                    </select>
+                </div>
+                <table class="w-full">
+                    <thead>
+                        <tr>
+                            <th class="text-left pb-2">Date</th>
+                            <th class="text-left pb-2">Category</th>
+                            <th class="text-left pb-2">Description</th>
+                            <th class="text-right pb-2">Amount</th>
+                        </tr>
+                    </thead>
+                    <tbody id="movementList">
+                        <!-- Movements will be dynamically added here -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </th:block>
+
+    <th:block th:fragment="extraScripts">
+        <script>
+            // Fetch and display movements
+            async function fetchMovements() {
+                const response = await fetch('/movs');
+                const movements = await response.json();
+                const movementList = document.getElementById('movementList');
+                movementList.innerHTML = '';
+                movements.forEach(movement => {
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td class="py-2">${new Date(movement.date).toLocaleDateString()}</td>
+                        <td class="py-2">${movement.category.name}</td>
+                        <td class="py-2">${movement.description}</td>
+                        <td class="py-2 text-right ${movement.amount >= 0 ? 'text-green-600' : 'text-red-600'}">
+                            ${movement.amount.toFixed(2)}
+                        </td>
+                    `;
+                    movementList.appendChild(tr);
+                });
+            }
+
+            // Implement search and filter functionality
+            document.getElementById('searchInput').addEventListener('input', filterMovements);
+            document.getElementById('filterSelect').addEventListener('change', filterMovements);
+
+            function filterMovements() {
+                // Implement filtering logic
+            }
+
+            fetchMovements();
+        </script>
+    </th:block>
+</th:block>

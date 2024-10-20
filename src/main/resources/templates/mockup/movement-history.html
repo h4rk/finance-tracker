@@ -2,68 +2,175 @@
     title='Movement History - Personal Finance Tracker',
     bodyClass='bg-gray-100',
     content=~{::content},
-    extraHead=~{},
+    extraHead=~{::extraHead},
     extraScripts=~{::extraScripts}
 )}">
+    <th:block th:fragment="extraHead">
+        <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    </th:block>
+
     <th:block th:fragment="content">
         <div class="container mx-auto px-4 py-8">
-            <h1 class="text-3xl font-bold mb-8">Movement History</h1>
+            <h1 class="text-4xl font-bold mb-8 text-indigo-700">Movement History</h1>
 
-            <div class="bg-white p-6 rounded-lg shadow">
-                <div class="mb-4 flex justify-between items-center">
-                    <input type="text" id="searchInput" placeholder="Search movements..." class="border rounded px-3 py-2">
-                    <select id="filterSelect" class="border rounded px-3 py-2">
-                        <option value="all">All</option>
-                        <option value="income">Income</option>
-                        <option value="expense">Expense</option>
-                    </select>
+            <div class="bg-white p-6 rounded-lg shadow-lg">
+                <div class="mb-6 flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
+                    <input type="text" id="searchInput" placeholder="Search movements..." class="w-full md:w-1/3 border rounded-md px-4 py-2 focus:ring-indigo-500 focus:border-indigo-500">
+                    <div class="flex space-x-4">
+                        <select id="filterSelect" class="border rounded-md px-4 py-2 focus:ring-indigo-500 focus:border-indigo-500">
+                            <option value="all">All</option>
+                            <option value="income">Income</option>
+                            <option value="expense">Expense</option>
+                        </select>
+                        <select id="sortSelect" class="border rounded-md px-4 py-2 focus:ring-indigo-500 focus:border-indigo-500">
+                            <option value="date-desc">Date (Newest)</option>
+                            <option value="date-asc">Date (Oldest)</option>
+                            <option value="amount-desc">Amount (Highest)</option>
+                            <option value="amount-asc">Amount (Lowest)</option>
+                        </select>
+                    </div>
                 </div>
-                <table class="w-full">
-                    <thead>
-                        <tr>
-                            <th class="text-left pb-2">Date</th>
-                            <th class="text-left pb-2">Category</th>
-                            <th class="text-left pb-2">Description</th>
-                            <th class="text-right pb-2">Amount</th>
-                        </tr>
-                    </thead>
-                    <tbody id="movementList">
-                        <!-- Movements will be dynamically added here -->
-                    </tbody>
-                </table>
+                <div class="overflow-x-auto">
+                    <table class="w-full">
+                        <thead>
+                            <tr class="bg-indigo-100">
+                                <th class="text-left py-3 px-4 font-semibold text-indigo-800">Date</th>
+                                <th class="text-left py-3 px-4 font-semibold text-indigo-800">Category</th>
+                                <th class="text-left py-3 px-4 font-semibold text-indigo-800">Description</th>
+                                <th class="text-right py-3 px-4 font-semibold text-indigo-800">Amount</th>
+                            </tr>
+                        </thead>
+                        <tbody id="movementList">
+                            <!-- Movements will be dynamically added here -->
+                        </tbody>
+                    </table>
+                </div>
+                <div class="mt-4 flex justify-between items-center">
+                    <p id="totalCount" class="text-gray-600"></p>
+                    <div class="flex space-x-2">
+                        <button id="prevPage" class="px-3 py-1 bg-indigo-500 text-white rounded-md hover:bg-indigo-600">Previous</button>
+                        <button id="nextPage" class="px-3 py-1 bg-indigo-500 text-white rounded-md hover:bg-indigo-600">Next</button>
+                    </div>
+                </div>
             </div>
         </div>
     </th:block>
 
     <th:block th:fragment="extraScripts">
         <script>
+            let movements = [
+                { id: 1, date: '2023-05-01', category: { name: 'Salary', type: 'INCOME' }, description: 'Monthly salary', amount: 5000 },
+                { id: 2, date: '2023-05-02', category: { name: 'Groceries', type: 'EXPENSE' }, description: 'Weekly grocery shopping', amount: -150 },
+                { id: 3, date: '2023-05-03', category: { name: 'Utilities', type: 'EXPENSE' }, description: 'Electricity bill', amount: -80 },
+                { id: 4, date: '2023-05-05', category: { name: 'Entertainment', type: 'EXPENSE' }, description: 'Movie night', amount: -30 },
+                { id: 5, date: '2023-05-07', category: { name: 'Dining Out', type: 'EXPENSE' }, description: 'Dinner with friends', amount: -75 },
+                { id: 6, date: '2023-05-10', category: { name: 'Transportation', type: 'EXPENSE' }, description: 'Gas refill', amount: -60 },
+                { id: 7, date: '2023-05-12', category: { name: 'Healthcare', type: 'EXPENSE' }, description: 'Pharmacy', amount: -45 },
+                { id: 8, date: '2023-05-15', category: { name: 'Investments', type: 'INCOME' }, description: 'Stock dividends', amount: 200 },
+                { id: 9, date: '2023-05-18', category: { name: 'Shopping', type: 'EXPENSE' }, description: 'New clothes', amount: -120 },
+                { id: 10, date: '2023-05-20', category: { name: 'Rent', type: 'EXPENSE' }, description: 'Monthly rent', amount: -1200 },
+                // Add more mock data here...
+            ];
+
+            let currentPage = 1;
+            const itemsPerPage = 10;
+
             // Fetch and display movements
-            async function fetchMovements() {
-                const response = await fetch('/movs');
-                const movements = await response.json();
+            function fetchMovements() {
                 const movementList = document.getElementById('movementList');
                 movementList.innerHTML = '';
-                movements.forEach(movement => {
+                
+                const filteredMovements = filterMovements();
+                const paginatedMovements = paginateMovements(filteredMovements);
+
+                paginatedMovements.forEach(movement => {
                     const tr = document.createElement('tr');
+                    tr.className = 'border-b hover:bg-gray-100';
                     tr.innerHTML = `
-                        <td class="py-2">${new Date(movement.date).toLocaleDateString()}</td>
-                        <td class="py-2">${movement.category.name}</td>
-                        <td class="py-2">${movement.description}</td>
-                        <td class="py-2 text-right ${movement.amount >= 0 ? 'text-green-600' : 'text-red-600'}">
+                        <td class="py-3 px-4">${new Date(movement.date).toLocaleDateString()}</td>
+                        <td class="py-3 px-4">${movement.category.name}</td>
+                        <td class="py-3 px-4">${movement.description}</td>
+                        <td class="py-3 px-4 text-right font-semibold ${movement.amount >= 0 ? 'text-green-600' : 'text-red-600'}">
                             ${movement.amount.toFixed(2)}
                         </td>
                     `;
                     movementList.appendChild(tr);
                 });
+
+                updatePagination(filteredMovements.length);
             }
 
-            // Implement search and filter functionality
-            document.getElementById('searchInput').addEventListener('input', filterMovements);
-            document.getElementById('filterSelect').addEventListener('change', filterMovements);
-
+            // Filter movements based on search input and category filter
             function filterMovements() {
-                // Implement filtering logic
+                const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+                const filterType = document.getElementById('filterSelect').value;
+                const sortType = document.getElementById('sortSelect').value;
+
+                let filtered = movements.filter(movement => {
+                    const matchesSearch = movement.description.toLowerCase().includes(searchTerm) ||
+                                          movement.category.name.toLowerCase().includes(searchTerm);
+                    const matchesFilter = filterType === 'all' || 
+                                          (filterType === 'income' && movement.amount >= 0) ||
+                                          (filterType === 'expense' && movement.amount < 0);
+                    return matchesSearch && matchesFilter;
+                });
+
+                // Sort the filtered movements
+                filtered.sort((a, b) => {
+                    switch (sortType) {
+                        case 'date-desc':
+                            return new Date(b.date) - new Date(a.date);
+                        case 'date-asc':
+                            return new Date(a.date) - new Date(b.date);
+                        case 'amount-desc':
+                            return b.amount - a.amount;
+                        case 'amount-asc':
+                            return a.amount - b.amount;
+                    }
+                });
+
+                return filtered;
             }
+
+            // Paginate movements
+            function paginateMovements(filteredMovements) {
+                const startIndex = (currentPage - 1) * itemsPerPage;
+                const endIndex = startIndex + itemsPerPage;
+                return filteredMovements.slice(startIndex, endIndex);
+            }
+
+            // Update pagination info and buttons
+            function updatePagination(totalItems) {
+                const totalPages = Math.ceil(totalItems / itemsPerPage);
+                document.getElementById('totalCount').textContent = `Showing ${currentPage} of ${totalPages} pages (${totalItems} items)`;
+                document.getElementById('prevPage').disabled = currentPage === 1;
+                document.getElementById('nextPage').disabled = currentPage === totalPages;
+            }
+
+            // Event listeners
+            document.getElementById('searchInput').addEventListener('input', () => {
+                currentPage = 1;
+                fetchMovements();
+            });
+            document.getElementById('filterSelect').addEventListener('change', () => {
+                currentPage = 1;
+                fetchMovements();
+            });
+            document.getElementById('sortSelect').addEventListener('change', fetchMovements);
+            document.getElementById('prevPage').addEventListener('click', () => {
+                if (currentPage > 1) {
+                    currentPage--;
+                    fetchMovements();
+                }
+            });
+            document.getElementById('nextPage').addEventListener('click', () => {
+                const totalItems = filterMovements().length;
+                const totalPages = Math.ceil(totalItems / itemsPerPage);
+                if (currentPage < totalPages) {
+                    currentPage++;
+                    fetchMovements();
+                }
+            });
 
             fetchMovements();
         </script>

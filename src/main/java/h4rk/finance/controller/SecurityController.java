@@ -25,10 +25,9 @@ public class SecurityController {
 	
 	@Operation(summary = "Register a new user", description = "Registers a new user with the provided username and password")
 	@PostMapping("/register")
-	@ResponseBody
-	public ResponseEntity<String> register(@RequestParam String username, @RequestParam String password) {
+	public String register(@RequestParam String username, @RequestParam String password) {
 		userService.save(username, password);
-		return ResponseEntity.ok("User registered successfully");
+		return "login";
 	}
 
 	@Operation(summary = "Get login page", description = "Retrieves the login page")

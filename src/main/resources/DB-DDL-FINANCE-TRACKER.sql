@@ -8,7 +8,7 @@ CREATE TABLE `finance-tracker`.`user` (
   `user_id` bigint unsigned NOT NULL AUTO_INCREMENT,
   `username` varchar(45) NOT NULL,
   `password` varchar(255) NOT NULL,
-  `role` varchar(45) NOT NULL,
+  `roles` varchar(45) NOT NULL,
   PRIMARY KEY (`user_id`),
   UNIQUE KEY `unique_username` (`username`)
 );

@@ -4,6 +4,11 @@
             <div class="flex items-center">
                 <a href="/" class="text-white font-bold text-xl">Personal Finance Tracker</a>
             </div>
+			<div>
+				<form th:action="@{/logout}" method="post">
+					<button type="submit" class="text-white font-bold text-xl">Logout</button>
+				</form>
+			</div>
             <!-- Desktop menu button -->
             <div class="hidden lg:block">
                 <button id="desktop-menu-button" class="text-gray-300 hover:bg-gray-700 hover:text-white px-3 py-2 rounded-md text-sm font-medium transition-all duration-300 transform hover:scale-105">

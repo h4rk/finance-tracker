@@ -22,7 +22,13 @@ private JdbcTemplate jdbcTemplate;
 	public void save(String username, String password, String roles) {
 		String sql = "INSERT INTO user (username, password, roles) VALUES (?, ?, ?)";
 		if(roles == null || roles.isEmpty()) {
-			roles = "USER";
+			roles = "ROLE_USER";
+		} else {
+			StringBuilder rolesBuilder = new StringBuilder();
+			for (String role : roles.split(",")) {
+				rolesBuilder.append("ROLE_"+role.trim()).append(",");
+			}
+			roles = rolesBuilder.substring(0, rolesBuilder.length() - 1);
 		}
 		jdbcTemplate.update(sql, username, new BCryptPasswordEncoder().encode(password), roles);
 	}

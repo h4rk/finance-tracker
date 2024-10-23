@@ -25,8 +25,10 @@ CREATE TABLE `finance-tracker`.`cat` (
   `name` varchar(45) NOT NULL,
   `description` varchar(150) DEFAULT NULL,
   `cat_type` tinyint unsigned NOT NULL,
+  `user_id` bigint unsigned NOT NULL,
   PRIMARY KEY (`cat_id`),
-  CONSTRAINT `fk_cat_type_id` FOREIGN KEY (`cat_type`) REFERENCES `cat_type` (`cat_type_id`) ON DELETE RESTRICT
+  CONSTRAINT `fk_cat_type_id` FOREIGN KEY (`cat_type`) REFERENCES `cat_type` (`cat_type_id`) ON DELETE RESTRICT,
+  CONSTRAINT `fk_user_id_cat` FOREIGN KEY (`user_id`) REFERENCES `user` (`user_id`) ON DELETE RESTRICT
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 CREATE TABLE `finance-tracker`.`mov` (
@@ -35,7 +37,9 @@ CREATE TABLE `finance-tracker`.`mov` (
   `description` varchar(150) DEFAULT NULL,
   `date` date NOT NULL,
   `isIncome` tinyint NOT NULL,
-  PRIMARY KEY (`mov_id`)
+  `user_id` bigint unsigned NOT NULL,
+  PRIMARY KEY (`mov_id`),
+  CONSTRAINT `fk_user_id_mov` FOREIGN KEY (`user_id`) REFERENCES `user` (`user_id`) ON DELETE RESTRICT
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 CREATE TABLE `finance-tracker`.`mov_cat` (

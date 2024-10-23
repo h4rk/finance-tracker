@@ -13,6 +13,7 @@ import h4rk.finance.exceptions.GetCatsException;
 import h4rk.finance.exceptions.PostCatsException;
 import h4rk.finance.repository.CatTypeRepository;
 import h4rk.finance.repository.CatsRepository;
+import h4rk.finance.security.service.UserService;
 import lombok.extern.slf4j.Slf4j;
 
 @Service
@@ -25,10 +26,13 @@ public class CatsService {
 	@Autowired
 	private CatTypeRepository catTypeRepository;
 
+	@Autowired
+	private UserService userService;
+
     public List<Cat> getCats() {
         log.info("Executing getCats()...");
         try {
-            List<Cat> cats = catsRepository.getCats();
+            List<Cat> cats = catsRepository.getCats(userService.getCurrentUserId());
             log.debug("getCats() returned: [{}]", cats);
             return cats;
         } catch (Exception e) {
@@ -37,10 +41,15 @@ public class CatsService {
         }
     }
 
+	public Cat getCatById(Long id) {
+		return catsRepository.getCatById(id, userService.getCurrentUserId());
+	}
+
     public Cat postCat(Cat cat) {
         log.info("Executing postCat() with cat: [{}]...", cat);
+
         try {
-            return catsRepository.postCat(cat);
+            return catsRepository.postCat(cat, userService.getCurrentUserId());
         } catch (Exception e) {
             log.error("Error executing postCat(): [{}]", e.getMessage());
             throw new PostCatsException("Error while posting the category.", e);
@@ -50,7 +59,7 @@ public class CatsService {
     public void deleteCat(long id) {
         log.info("Executing deleteCat() with id: [{}]...", id);
         try {
-            catsRepository.deleteCat(id);
+            catsRepository.deleteCat(id, userService.getCurrentUserId());
         } catch (Exception e) {
             log.error("Error executing deleteCat(): [{}]", e.getMessage());
             throw new DeleteCatsException("Error while deleting the category.", e);

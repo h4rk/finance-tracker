@@ -18,39 +18,40 @@ public class MovsRepository {
 	@Autowired
 	private JdbcTemplate jdbcTemplate;
 	
-	public int deleteMovs(long id) {
-		return jdbcTemplate.update("DELETE FROM mov WHERE mov_id = ?", id);
+	public int deleteMovs(long id, long userId) {
+		return jdbcTemplate.update("DELETE FROM mov WHERE mov_id = ? AND user_id = ?", id, userId);
 	}
 
-	public BigInteger postMovs(Mov mov) {
+	public BigInteger postMovs(Mov mov, long userId) {
 
 		KeyHolder keyHolder = new GeneratedKeyHolder();
 
     	jdbcTemplate.update(connection -> {
         PreparedStatement ps = connection
-          .prepareStatement("INSERT INTO mov (description, amount, date, isIncome) VALUES (?, ?, ?, ?)", Statement.RETURN_GENERATED_KEYS);
+          .prepareStatement("INSERT INTO mov (description, amount, date, isIncome, user_id) VALUES (?, ?, ?, ?, ?)", Statement.RETURN_GENERATED_KEYS);
           ps.setString(1, mov.getDescription());
 		  ps.setDouble(2, mov.getAmount());
 		  ps.setDate(3, mov.getDate());
 		  ps.setBoolean(4, mov.isIncome());
+		  ps.setLong(5, userId);
           return ps;
         }, keyHolder);
 
         return (BigInteger) keyHolder.getKey();
     }
 
-	public List<Mov> getMovs() {
-		return jdbcTemplate.query("SELECT * FROM mov", (rs, rowNum) -> new Mov(rs.getLong("mov_id"), rs.getString("description"), rs.getDouble("amount"), rs.getDate("date"), rs.getBoolean("isIncome")));
+	public List<Mov> getMovs(long userId) {
+		return jdbcTemplate.query("SELECT * FROM mov WHERE user_id = ?", (rs, rowNum) -> new Mov(rs.getLong("mov_id"), rs.getString("description"), rs.getDouble("amount"), rs.getDate("date"), rs.getBoolean("isIncome")), userId);
 	}
 
-	public Mov getMovById(long id) {
-		return jdbcTemplate.queryForObject("SELECT * FROM mov WHERE mov_id = ?", (rs, rowNum) -> new Mov(rs.getLong("mov_id"), rs.getString("description"), rs.getDouble("amount"), rs.getDate("date"), rs.getBoolean("isIncome")), id);
+	public Mov getMovById(long id, long userId) {
+		return jdbcTemplate.queryForObject("SELECT * FROM mov WHERE mov_id = ? AND user_id = ?", (rs, rowNum) -> new Mov(rs.getLong("mov_id"), rs.getString("description"), rs.getDouble("amount"), rs.getDate("date"), rs.getBoolean("isIncome")), id, userId);
 	}
 
-	public List<MovWithFullCat> getAllMovsWithFullCat() {
+	public List<MovWithFullCat> getAllMovsWithFullCat(long userId) {
 		String sql = "SELECT mov.mov_id, mov.description, mov.amount, mov.date, mov.isIncome, " +
                      "GROUP_CONCAT(cat.cat_id) as cat_ids, GROUP_CONCAT(cat.name) as cat_names " +
-                     "FROM mov " +
+                     "FROM (SELECT mov_id, description, amount, date, isIncome FROM mov WHERE user_id = ?) mov " +
                      "LEFT JOIN mov_cat ON mov.mov_id = mov_cat.mov_id " +
                      "LEFT JOIN cat ON mov_cat.cat_id = cat.cat_id " +
                      "GROUP BY mov.mov_id";

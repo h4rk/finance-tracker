@@ -1,6 +1,8 @@
 package h4rk.finance.security.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -22,6 +24,11 @@ public class UserService implements UserDetailsService{
 			throw new UsernameNotFoundException("User not found");
 		}
 		return user;
+	}
+
+	public Long getCurrentUserId() {
+		String username = SecurityContextHolder.getContext().getAuthentication().getPrincipal().toString();
+		return userRepository.findByUsername(username).getId();
 	}
 
 	public void save(String username, String password) {

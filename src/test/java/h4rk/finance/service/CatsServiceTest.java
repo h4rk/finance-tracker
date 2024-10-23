@@ -20,6 +20,7 @@ import h4rk.finance.exceptions.GetCatsException;
 import h4rk.finance.exceptions.PostCatsException;
 import h4rk.finance.repository.CatTypeRepository;
 import h4rk.finance.repository.CatsRepository;
+import h4rk.finance.security.service.UserService;
 
 class CatsServiceTest {
 
@@ -32,25 +33,31 @@ class CatsServiceTest {
     @InjectMocks
     private CatsService catsService;
 
+    @Mock
+    private UserService userService;
+
+    private static final long MOCK_USER_ID = 1L;
+
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
+        when(userService.getCurrentUserId()).thenReturn(MOCK_USER_ID);
     }
 
     @Test
     void testGetCats() {
         List<Cat> expectedCats = Arrays.asList(new Cat(), new Cat());
-        when(catsRepository.getCats()).thenReturn(expectedCats);
+        when(catsRepository.getCats(userService.getCurrentUserId())).thenReturn(expectedCats);
 
         List<Cat> actualCats = catsService.getCats();
 
         assertEquals(expectedCats, actualCats);
-        verify(catsRepository, times(1)).getCats();
+        verify(catsRepository, times(1)).getCats(userService.getCurrentUserId());
     }
 
     @Test
     void testGetCatsException() {
-        when(catsRepository.getCats()).thenThrow(new RuntimeException("Database error"));
+        when(catsRepository.getCats(userService.getCurrentUserId())).thenThrow(new RuntimeException("Database error"));
 
         assertThrows(GetCatsException.class, () -> catsService.getCats());
     }
@@ -58,18 +65,18 @@ class CatsServiceTest {
     @Test
     void testPostCat() {
         Cat cat = new Cat();
-        when(catsRepository.postCat(cat)).thenReturn(cat);
+        when(catsRepository.postCat(cat, userService.getCurrentUserId())).thenReturn(cat);
 
         Cat result = catsService.postCat(cat);
 
         assertEquals(cat, result);
-        verify(catsRepository, times(1)).postCat(cat);
+        verify(catsRepository, times(1)).postCat(cat, userService.getCurrentUserId());
     }
 
     @Test
     void testPostCatException() {
         Cat cat = new Cat();
-        when(catsRepository.postCat(cat)).thenThrow(new RuntimeException("Database error"));
+        when(catsRepository.postCat(cat, userService.getCurrentUserId())).thenThrow(new RuntimeException("Database error"));
 
         assertThrows(PostCatsException.class, () -> catsService.postCat(cat));
     }
@@ -77,16 +84,17 @@ class CatsServiceTest {
     @Test
     void testDeleteCat() {
         long id = 1L;
-		when(catsRepository.deleteCat(id)).thenReturn(1);
+		when(catsRepository.deleteCat(id, userService.getCurrentUserId())).thenReturn(1);
 
 		assertDoesNotThrow(() -> catsService.deleteCat(id));
-		verify(catsRepository, times(1)).deleteCat(id);
+		verify(catsRepository, times(1)).deleteCat(id, userService.getCurrentUserId());
     }
 
     @Test
     void testDeleteCatException() {
         long id = 1L;
-        doThrow(new RuntimeException("Database error")).when(catsRepository).deleteCat(id);
+        when(catsRepository.deleteCat(id, userService.getCurrentUserId()))
+            .thenThrow(new RuntimeException("Database error"));
 
         assertThrows(DeleteCatsException.class, () -> catsService.deleteCat(id));
     }

@@ -23,7 +23,8 @@ public class CatsRepository {
         return jdbcTemplate.query("SELECT * FROM cat WHERE user_id = ?", (rs, rowNum) -> new Cat(rs.getLong("cat_id"), rs.getString("name"), rs.getString("description"), rs.getShort("cat_type")), userId);
     }
 
-    public Cat postCat(Cat cat, long userId) {
+    @SuppressWarnings("null")
+	public Cat postCat(Cat cat, long userId) {
 		KeyHolder keyHolder = new GeneratedKeyHolder();
 
     	jdbcTemplate.update(connection -> {

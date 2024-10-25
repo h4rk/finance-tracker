@@ -7,7 +7,9 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <link rel="stylesheet" th:href="@{/css/style.css}">
+    <link rel="stylesheet" th:href="@{/css/nav.css}">
     <style>
         @media (max-width: 640px) {
             .container {
@@ -39,36 +41,15 @@
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             const mobileMenuButton = document.getElementById('mobile-menu-button');
-            const closeMobileMenuButton = document.getElementById('close-mobile-menu');
-            const desktopMenuButton = document.getElementById('desktop-menu-button');
-            const closeDesktopMenuButton = document.getElementById('close-desktop-menu');
             const mobileMenu = document.getElementById('mobile-menu');
-            const desktopMenu = document.getElementById('desktop-menu');
 
             function toggleMobileMenu() {
-                mobileMenu.classList.toggle('translate-x-full');
-                document.body.classList.toggle('overflow-hidden');
-            }
-
-            function toggleDesktopMenu() {
-                desktopMenu.classList.toggle('hidden');
+                mobileMenu.classList.toggle('hidden');
                 document.body.classList.toggle('overflow-hidden');
             }
 
             if (mobileMenuButton) {
                 mobileMenuButton.addEventListener('click', toggleMobileMenu);
-            }
-
-            if (closeMobileMenuButton) {
-                closeMobileMenuButton.addEventListener('click', toggleMobileMenu);
-            }
-
-            if (desktopMenuButton) {
-                desktopMenuButton.addEventListener('click', toggleDesktopMenu);
-            }
-
-            if (closeDesktopMenuButton) {
-                closeDesktopMenuButton.addEventListener('click', toggleDesktopMenu);
             }
 
             // Close mobile menu when clicking on a link
@@ -77,14 +58,27 @@
                     link.addEventListener('click', toggleMobileMenu);
                 });
             }
+        });
+    </script>
+    <!-- Add this script at the end of the body tag -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const navToggle = document.getElementById('nav-toggle');
+            const body = document.body;
 
-            // Close desktop menu when clicking on a link
-            if (desktopMenu) {
-                desktopMenu.querySelectorAll('a').forEach(link => {
-                    link.addEventListener('click', toggleDesktopMenu);
+            navToggle.addEventListener('click', function() {
+                body.classList.toggle('nav-open');
+            });
+
+            // Close menu when clicking a link (for mobile)
+            const navLinks = document.querySelectorAll('.nav-item');
+            navLinks.forEach(link => {
+                link.addEventListener('click', () => {
+                    if (window.innerWidth <= 768) {
+                        body.classList.remove('nav-open');
+                    }
                 });
-            }
-
+            });
         });
     </script>
 </body>

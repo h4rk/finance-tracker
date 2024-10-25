@@ -96,21 +96,47 @@ export function displayBudgetSummary(appData) {
     const summaryContainer = document.getElementById('budgetSummary');
     
     let html = `
-        <h3 class="text-lg font-semibold mb-2">Riepilogo Budget</h3>
-        <p>Budget Totale: ${formatCurrency(summary.totalBudget)}</p>
-        <p>Speso Totale: ${formatCurrency(summary.totalSpent)}</p>
-        <p>Rimanente Totale: ${formatCurrency(summary.totalRemaining)}</p>
-        <h4 class="text-md font-semibold mt-4 mb-2">Dettagli per Categoria:</h4>
+        <div class="bg-white p-4 rounded-lg shadow-md">
+            <h3 class="text-xl font-semibold mb-4">Riepilogo Budget</h3>
+            <div class="grid grid-cols-3 gap-4 mb-4">
+                <div>
+                    <p class="text-sm text-gray-600">Budget Totale</p>
+                    <p class="text-lg font-semibold">${formatCurrency(summary.totalBudget)}</p>
+                </div>
+                <div>
+                    <p class="text-sm text-gray-600">Speso Totale</p>
+                    <p class="text-lg font-semibold">${formatCurrency(summary.totalSpent)}</p>
+                </div>
+                <div>
+                    <p class="text-sm text-gray-600">Rimanente Totale</p>
+                    <p class="text-lg font-semibold">${formatCurrency(summary.totalRemaining)}</p>
+                </div>
+            </div>
+            <h4 class="text-lg font-semibold mt-6 mb-4">Dettagli per Categoria</h4>
+            <div class="space-y-4">
     `;
 
     summary.categorySummaries.forEach(catSummary => {
+        const percentage = (catSummary.spent / catSummary.budget) * 100;
         html += `
-            <div class="mb-2">
-                <p><strong>${catSummary.categoryName}</strong></p>
-                <p>Budget: ${formatCurrency(catSummary.budget)} | Speso: ${formatCurrency(catSummary.spent)} | Rimanente: ${formatCurrency(catSummary.remaining)}</p>
+            <div class="bg-gray-100 p-4 rounded-lg">
+                <p class="font-semibold">${catSummary.categoryName}</p>
+                <div class="flex justify-between text-sm text-gray-600 mt-2">
+                    <span>Budget: ${formatCurrency(catSummary.budget)}</span>
+                    <span>Speso: ${formatCurrency(catSummary.spent)}</span>
+                    <span>Rimanente: ${formatCurrency(catSummary.remaining)}</span>
+                </div>
+                <div class="mt-2 h-2 bg-gray-200 rounded-full">
+                    <div class="h-full bg-blue-600 rounded-full" style="width: ${percentage}%"></div>
+                </div>
             </div>
         `;
     });
+
+    html += `
+            </div>
+        </div>
+    `;
 
     summaryContainer.innerHTML = html;
 }

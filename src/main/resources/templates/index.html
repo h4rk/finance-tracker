@@ -2,240 +2,241 @@
     title='Personal Finance Tracker',
     bodyClass='bg-gray-100',
     content=~{::content},
-    extraHead=~{},
+    extraHead=~{::extraHead},
     extraScripts=~{::extraScripts}
 )}">
+    <th:block th:fragment="extraHead">
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+
+    </th:block>
+
     <th:block th:fragment="content">
-        <div class="min-h-full">
-            <main>
-                <div class="mx-auto max-w-[1900px] py-6 sm:px-6 lg:px-0">
-                    <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-                        <!-- Saldo mensile -->
-                        <div class="bg-white overflow-hidden shadow rounded-lg">
-                            <div class="px-4 py-5 sm:p-6">
-                                <h3 class="text-lg font-medium leading-6 text-gray-900 mb-4">Saldo mensile</h3>
-                                <dl class="mt-5 grid grid-cols-1 gap-5 sm:grid-cols-2">
-                                    <div class="px-4 py-5 bg-green-100 shadow rounded-lg overflow-hidden sm:p-6">
-                                        <dt class="text-sm font-medium text-gray-500 truncate">Entrate</dt>
-                                        <dd id="income" class="mt-1 text-2xl font-semibold text-gray-900">€0.00</dd>
-                                    </div>
-                                    <div class="px-4 py-5 bg-red-100 shadow rounded-lg overflow-hidden sm:p-6">
-                                        <dt class="text-sm font-medium text-gray-500 truncate">Uscite</dt>
-                                        <dd id="expenses" class="mt-1 text-2xl font-semibold text-gray-900">€0.00</dd>
-                                    </div>
-                                </dl>
-                                <div class="mt-5 px-4 py-5 bg-blue-100 shadow rounded-lg overflow-hidden sm:p-6">
-                                    <dt class="text-sm font-medium text-gray-500 truncate">Delta</dt>
-                                    <dd id="balance" class="mt-1 text-2xl font-semibold text-gray-900">€0.00</dd>
-                                </div>
-                            </div>
+        <div class="container mx-auto px-4 py-8">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <!-- Monthly Balance -->
+                <div class="bg-white rounded-lg shadow-md p-6">
+                    <h3 class="text-xl font-semibold text-gray-800 mb-4">Monthly Balance</h3>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="bg-green-100 rounded-lg p-4">
+                            <p class="text-sm font-medium text-gray-600">Income</p>
+                            <p id="income" class="text-2xl font-bold text-green-600">€0.00</p>
                         </div>
-
-                        <!-- Gestione categorie -->
-                        <div class="bg-white overflow-hidden shadow rounded-lg lg:col-span-1">
-                            <div class="px-6 py-8">
-                                <h3 class="text-2xl font-semibold text-gray-800 mb-6">Nuova categoria</h3>
-                                <form id="newCategoryForm" class="space-y-4">
-                                    <div class="flex flex-col space-y-2 sm:flex-row sm:space-y-0 sm:space-x-2">
-                                        <input type="text" id="newCategoryName" name="newCategoryName" placeholder="Nome categoria" required class="w-full sm:w-auto flex-grow rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
-                                        <select id="newCategoryType" name="newCategoryType" required class="w-full sm:w-auto rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
-                                            <option value="1">Spesa</option>
-                                            <option value="2">Entrata</option>
-                                            <option value="3">Entrambi</option>
-                                        </select>
-                                    </div>
-                                    <button type="submit" class="w-full sm:w-auto inline-flex justify-center items-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-indigo-600 text-base font-medium text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:text-sm">
-                                        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
-                                        </svg>
-                                        <span>Aggiungi categoria</span>
-                                    </button>
-                                </form>
-                                <div class="bg-white overflow-hidden shadow rounded-lg">
-                                    <div class="px-4 py-5 sm:p-6">
-                                        <h3 class="text-lg font-medium leading-6 text-gray-900 mb-4">Gestione categorie</h3>
-                                        <ul id="categoryList" class="divide-y divide-gray-200">
-                                            <!-- Le categorie verranno caricate dinamicamente -->
-                                        </ul>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Andamento -->
-                        <div class="bg-white overflow-hidden shadow rounded-lg lg:col-span-2">
-                            <div class="px-4 py-5 sm:p-6">
-                                <h3 class="text-lg font-medium leading-6 text-gray-900 mb-4">Andamento</h3>
-                                <select id="trendPeriod" class="mb-4 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
-                                    <option value="3">3 mesi</option>
-                                    <option value="6">6 mesi</option>
-                                    <option value="12" selected>12 mesi</option>
-                                    <option value="24">24 mesi</option>
-                                </select>
-                                <div class="h-64">
-                                    <canvas id="trendChart"></canvas>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Nuovo movimento -->
-                        <div class="bg-white overflow-hidden shadow rounded-lg lg:col-span-2">
-                            <div class="px-6 py-8">
-                                <h3 class="text-2xl font-semibold text-gray-800 mb-6">Nuovo movimento</h3>
-                                <form id="newTransactionForm">
-                                    <div class="mb-6">
-                                        <label for="transactionType" class="flex items-center justify-between cursor-pointer">
-                                            <span class="text-gray-700 font-medium">Uscita</span>
-                                            <div class="relative">
-                                                <input type="checkbox" id="transactionType" class="sr-only peer">
-                                                <div class="w-14 h-8 bg-red-500 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-[22px] peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border after:rounded-full after:h-7 after:w-7 after:transition-all peer-checked:bg-green-500 focus:outline-none"></div>
-                                            </div>
-                                            <span class="text-gray-700 font-medium">Entrata</span>
-                                        </label>
-                                    </div>
-                                    <div class="space-y-4">
-                                        <div>
-                                            <label for="amount" class="block text-sm font-medium text-gray-700 mb-1">Importo</label>
-                                            <input type="number" id="amount" name="amount" placeholder="0.00" step="0.01" required min="0" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
-                                        </div>
-                                        <div>
-                                            <label for="description" class="block text-sm font-medium text-gray-700 mb-1">Descrizione</label>
-                                            <input type="text" id="description" name="description" placeholder="Inserisci una descrizione" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
-                                        </div>
-                                        <div>
-                                            <label for="category" class="block text-sm font-medium text-gray-700 mb-1">Categorie</label>
-                                            <select id="category" name="category" multiple required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
-                                                <option value="">Seleziona categorie</option>
-                                            </select>
-                                        </div>
-                                        <div>
-                                            <label for="date" class="block text-sm font-medium text-gray-700 mb-1">Data</label>
-                                            <input type="date" id="date" name="date" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
-                                        </div>
-                                    </div>
-                                    <button type="submit" id="submitTransaction" class="mt-6 w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-red-600 text-base font-medium text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition duration-150 ease-in-out">
-                                        Inserisci
-                                    </button>
-                                </form>
-                            </div>
-                        </div>
-
-                        <!-- Budget mensile -->
-                        <div class="bg-white overflow-hidden shadow rounded-lg col-span-1 lg:col-span-2">
-                            <div class="px-4 py-5 sm:p-6">
-                                <div class="flex justify-between items-center mb-4">
-                                    <h3 class="text-lg font-medium leading-6 text-gray-900">Progresso budget</h3>
-                                    <button id="addBudgetBtn" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded">
-                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
-                                        </svg>
-                                    </button>
-                                </div>
-                                <div id="budgetProgressBars">
-                                    <!-- Le barre di progresso verranno caricate dinamicamente -->
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Tabella movimenti -->
-                        <div class="bg-white overflow-hidden shadow rounded-lg col-span-1 lg:col-span-4">
-                            <div class="px-4 py-5 sm:p-6">
-                                <h3 class="text-lg font-medium leading-6 text-gray-900 mb-4">Lista movimenti</h3>
-                                <div class="mb-4 flex space-x-2">
-                                    <input type="text" id="transactionSearch" placeholder="Cerca..." class="flex-grow rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
-                                    <select id="transactionFilter" class="rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
-                                        <option value="all">Tutti</option>
-                                        <option value="income">Entrate</option>
-                                        <option value="expense">Uscite</option>
-                                    </select>
-                                </div>
-                                <div class="overflow-x-auto">
-                                    <table id="transactionTable" class="min-w-full divide-y divide-gray-200">
-                                        <thead class="bg-gray-50">
-                                            <tr>
-                                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Data</th>
-                                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Descrizione</th>
-                                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Categorie</th>
-                                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Importo</th>
-                                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tipo</th>
-                                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Azioni</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            <!-- I movimenti verranno caricati dinamicamente -->
-                                        </tbody>
-                                    </table>
-                                </div>
-                            </div>
+                        <div class="bg-red-100 rounded-lg p-4">
+                            <p class="text-sm font-medium text-gray-600">Expenses</p>
+                            <p id="expenses" class="text-2xl font-bold text-red-600">€0.00</p>
                         </div>
                     </div>
+                    <div class="mt-4 bg-blue-100 rounded-lg p-4">
+                        <p class="text-sm font-medium text-gray-600">Balance</p>
+                        <p id="balance" class="text-2xl font-bold text-blue-600">€0.00</p>
+                    </div>
                 </div>
-            </main>
+
+
+                <!-- Trend Chart -->
+                <div class="bg-white rounded-lg shadow-md p-6 col-span-1 md:col-span-2">
+                    <h3 class="text-xl font-semibold text-gray-800 mb-4">Financial Trend</h3>
+                    <select id="trendPeriod" class="w-full mb-4 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                        <option value="3">3 months</option>
+                        <option value="6">6 months</option>
+                        <option value="12" selected>12 months</option>
+                        <option value="24">24 months</option>
+                    </select>
+                    <div class="h-64">
+                        <canvas id="trendChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Category Management -->
+                <div class="bg-white rounded-lg shadow-md p-6 col-span-1 md:col-span-2">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-xl font-semibold text-gray-800">Categories</h3>
+                        <button id="addCategoryBtn" class="bg-indigo-600 text-white p-2 rounded-full hover:bg-indigo-700 transition duration-300">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                            </svg>
+                        </button>
+                    </div>
+                    <ul id="categoryList" class="space-y-2">
+                        <!-- Categories will be loaded dynamically -->
+                    </ul>
+                </div>
+                <!-- Monthly Budget -->
+                <div class="bg-white rounded-lg shadow-md p-6 col-span-1 md:col-span-2">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-xl font-semibold text-gray-800">Budget Progress</h3>
+                        <button id="addBudgetBtn" class="bg-indigo-600 text-white p-2 rounded-full hover:bg-indigo-700 transition duration-300">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                            </svg>
+                        </button>
+                    </div>
+                    <div id="budgetProgressBars" class="space-y-4">
+                        <!-- Budget progress bars will be loaded dynamically -->
+                    </div>
+                </div>
+
+                <!-- Transaction List -->
+                <div class="bg-white rounded-lg shadow-md p-6 col-span-1 md:col-span-2 lg:col-span-4">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-xl font-semibold text-gray-800">Transaction List</h3>
+                        <button id="addTransactionBtn" class="bg-indigo-600 text-white p-2 rounded-full hover:bg-indigo-700 transition duration-300">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                            </svg>
+                        </button>
+                    </div>
+                    <div class="flex space-x-2 mb-4">
+                        <input type="text" id="transactionSearch" placeholder="Search..." class="flex-grow px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                        <select id="transactionFilter" class="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                            <option value="all">All</option>
+                            <option value="income">Income</option>
+                            <option value="expense">Expense</option>
+                        </select>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table id="transactionTable" class="min-w-full divide-y divide-gray-200">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Description</th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Categories</th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Amount</th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Type</th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody class="bg-white divide-y divide-gray-200">
+                                <!-- Transactions will be loaded dynamically -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
         </div>
 
-        <!-- Transaction Details -->
-        <div id="transactionDetails" class="hidden bg-white p-4 rounded-lg shadow">
-            <h3 class="text-lg font-semibold mb-2">Dettagli Transazione</h3>
-            <p><strong>Data:</strong> <span id="transactionDate"></span></p>
-            <p><strong>Descrizione:</strong> <span id="transactionDescription"></span></p>
-            <p><strong>Categoria:</strong> <span id="transactionCategory"></span></p>
-            <p><strong>Importo:</strong> <span id="transactionAmount"></span></p>
-            <p><strong>Tipo:</strong> <span id="transactionType"></span></p>
+        <!-- Transaction Details Modal -->
+        <div id="transactionDetails" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full">
+            <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+                <h3 class="text-lg font-semibold text-gray-900 mb-4">Transaction Details</h3>
+                <p><strong>Date:</strong> <span id="transactionDate"></span></p>
+                <p><strong>Description:</strong> <span id="transactionDescription"></span></p>
+                <p><strong>Category:</strong> <span id="transactionCategory"></span></p>
+                <p><strong>Amount:</strong> <span id="transactionAmount"></span></p>
+                <p><strong>Type:</strong> <span id="transactionType"></span></p>
+                <button id="closeTransactionDetails" class="mt-4 bg-indigo-600 text-white py-2 px-4 rounded-md hover:bg-indigo-700 transition duration-300">Close</button>
+            </div>
         </div>
 
-        <!-- Category Details -->
-        <div id="categoryDetails" class="hidden bg-white p-4 rounded-lg shadow">
-            <h3 class="text-lg font-semibold mb-2">Dettagli Categoria</h3>
-            <p><strong>Nome:</strong> <span id="categoryName"></span></p>
-            <p><strong>Descrizione:</strong> <span id="categoryDescription"></span></p>
-            <p><strong>Tipo:</strong> <span id="categoryType"></span></p>
-            <p><strong>Budget:</strong> <span id="categoryBudget"></span></p>
-            <p><strong>Totale Transazioni:</strong> <span id="categoryTotalTransactions"></span></p>
-            <p><strong>Numero di Transazioni:</strong> <span id="categoryTransactionCount"></span></p>
+        <!-- Category Details Modal -->
+        <div id="categoryDetails" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full">
+            <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+                <h3 class="text-lg font-semibold text-gray-900 mb-4">Category Details</h3>
+                <p><strong>Name:</strong> <span id="categoryName"></span></p>
+                <p><strong>Description:</strong> <span id="categoryDescription"></span></p>
+                <p><strong>Type:</strong> <span id="categoryType"></span></p>
+                <p><strong>Budget:</strong> <span id="categoryBudget"></span></p>
+                <p><strong>Total Transactions:</strong> <span id="categoryTotalTransactions"></span></p>
+                <p><strong>Transaction Count:</strong> <span id="categoryTransactionCount"></span></p>
+                <button id="closeCategoryDetails" class="mt-4 bg-indigo-600 text-white py-2 px-4 rounded-md hover:bg-indigo-700 transition duration-300">Close</button>
+            </div>
         </div>
 
         <!-- Notification -->
-        <div id="notification" class="fixed bottom-4 right-4 p-4 rounded-lg text-white hidden">
+        <div id="notification" class="hidden fixed bottom-4 right-4 p-4 rounded-lg text-white">
             <span id="notificationMessage"></span>
         </div>
 
         <!-- Budget Modal -->
-        <div id="budgetModal" class="fixed z-10 inset-0 overflow-y-auto hidden">
-            <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
-                <div class="fixed inset-0 transition-opacity" aria-hidden="true">
-                    <div class="absolute inset-0 bg-gray-500 opacity-75"></div>
-                </div>
-                <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
-                <div class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
-                    <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
-                        <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4">Crea nuovo budget</h3>
-                        <form id="newBudgetForm">
-                            <div class="mb-4">
-                                <label for="budgetCategory" class="block text-sm font-medium text-gray-700">Categoria</label>
-                                <select id="budgetCategory" name="category" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
-                                    <!-- Options will be loaded dynamically -->
-                                </select>
-                            </div>
-                            <div class="mb-4">
-                                <label for="budgetAmount" class="block text-sm font-medium text-gray-700">Importo budget</label>
-                                <input type="number" id="budgetAmount" name="amount" required min="0" step="0.01" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
-                            </div>
-                        </form>
+        <div id="budgetModal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full">
+            <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+                <h3 class="text-lg font-semibold text-gray-900 mb-4">Create New Budget</h3>
+                <form id="newBudgetForm" class="space-y-4">
+                    <div>
+                        <label for="budgetCategory" class="block text-sm font-medium text-gray-700">Category</label>
+                        <select id="budgetCategory" name="category" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                            <!-- Options will be loaded dynamically -->
+                        </select>
                     </div>
-                    <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
-                        <button type="submit" form="newBudgetForm" class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-indigo-600 text-base font-medium text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:ml-3 sm:w-auto sm:text-sm">
-                            Crea budget
-                        </button>
-                        <button type="button" id="closeBudgetModal" class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm">
-                            Annulla
-                        </button>
+                    <div>
+                        <label for="budgetAmount" class="block text-sm font-medium text-gray-700">Budget Amount</label>
+                        <input type="number" id="budgetAmount" name="amount" required min="0" step="0.01" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500">
                     </div>
-                </div>
+                    <div class="flex justify-end space-x-2">
+                        <button type="button" id="closeBudgetModal" class="px-4 py-2 bg-gray-300 text-gray-800 rounded-md hover:bg-gray-400 transition duration-300">Cancel</button>
+                        <button type="submit" class="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition duration-300">Create Budget</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Category Modal -->
+        <div id="categoryModal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full">
+            <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+                <h3 class="text-lg font-semibold text-gray-900 mb-4">Create New Category</h3>
+                <form id="newCategoryForm" class="space-y-4">
+                    <div>
+                        <label for="newCategoryName" class="block text-sm font-medium text-gray-700">Category Name</label>
+                        <input type="text" id="newCategoryName" name="newCategoryName" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                    </div>
+                    <div>
+                        <label for="newCategoryType" class="block text-sm font-medium text-gray-700">Category Type</label>
+                        <select id="newCategoryType" name="newCategoryType" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                            <option value="1">Expense</option>
+                            <option value="2">Income</option>
+                            <option value="3">Both</option>
+                        </select>
+                    </div>
+                    <div class="flex justify-end space-x-2">
+                        <button type="button" id="closeCategoryModal" class="px-4 py-2 bg-gray-300 text-gray-800 rounded-md hover:bg-gray-400 transition duration-300">Cancel</button>
+                        <button type="submit" class="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition duration-300">Create Category</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Transaction Modal -->
+        <div id="transactionModal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full">
+            <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+                <h3 class="text-lg font-semibold text-gray-900 mb-4">Create New Transaction</h3>
+                <form id="newTransactionForm" class="space-y-4">
+                    <div class="flex items-center justify-between">
+                        <span class="text-gray-700">Expense</span>
+                        <label class="switch">
+                            <input type="checkbox" id="transactionType">
+                            <span class="slider round"></span>
+                        </label>
+                        <span class="text-gray-700">Income</span>
+                    </div>
+                    <div>
+                        <label for="amount" class="block text-sm font-medium text-gray-700">Amount</label>
+                        <input type="number" id="amount" name="amount" placeholder="Amount" step="0.01" required min="0" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                    </div>
+                    <div>
+                        <label for="description" class="block text-sm font-medium text-gray-700">Description</label>
+                        <input type="text" id="description" name="description" placeholder="Description" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                    </div>
+                    <div>
+                        <label for="category" class="block text-sm font-medium text-gray-700">Categories</label>
+                        <select id="category" name="category" multiple required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                            <option value="">Select categories</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="date" class="block text-sm font-medium text-gray-700">Date</label>
+                        <input type="text" id="date" name="date" placeholder="Date" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 flatpickr-input">
+                    </div>
+                    <div class="flex justify-end space-x-2">
+                        <button type="button" id="closeTransactionModal" class="px-4 py-2 bg-gray-300 text-gray-800 rounded-md hover:bg-gray-400 transition duration-300">Cancel</button>
+                        <button type="submit" id="submitTransaction" class="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition duration-300">Create Transaction</button>
+                    </div>
+                </form>
             </div>
         </div>
     </th:block>
     
     <th:block th:fragment="extraScripts">
+        <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
         <script type="module" th:src="@{/js/main.js}"></script>
     </th:block>
 </th:block>

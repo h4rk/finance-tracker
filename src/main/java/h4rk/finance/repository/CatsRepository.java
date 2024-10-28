@@ -20,7 +20,12 @@ public class CatsRepository {
     private JdbcTemplate jdbcTemplate;
 
     public List<Cat> getCats(long userId) {
-        return jdbcTemplate.query("SELECT * FROM cat WHERE user_id = ?", (rs, rowNum) -> new Cat(rs.getLong("cat_id"), rs.getString("name"), rs.getString("description"), rs.getShort("cat_type")), userId);
+        return jdbcTemplate.query("SELECT * FROM cat WHERE user_id = ?", 
+			(rs, rowNum) -> new Cat(rs.getLong("cat_id"),
+			 rs.getString("name"), 
+			 rs.getString("description"), 
+			 rs.getShort("cat_type")), 
+			 userId);
     }
 
     @SuppressWarnings("null")

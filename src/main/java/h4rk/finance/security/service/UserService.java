@@ -9,8 +9,10 @@ import org.springframework.stereotype.Service;
 
 import h4rk.finance.security.dto.User;
 import h4rk.finance.security.repository.UserRepository;
+import lombok.extern.slf4j.Slf4j;
 
 @Service
+@Slf4j
 public class UserService implements UserDetailsService{
 
 	@Autowired
@@ -26,8 +28,12 @@ public class UserService implements UserDetailsService{
 	}
 
 	public Long getCurrentUserId() {
-		String username = SecurityContextHolder.getContext().getAuthentication().getPrincipal().toString();
-		return userRepository.findByUsername(username).getId();
+		User user = (User)SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+		log.debug("Retrieving current user id for username: [{}]", user.getUsername());
+		Long id = userRepository.findByUsername(user.getUsername()).getUserId();
+		log.debug("Current user: [{}]", user.getUsername());
+		log.debug("Current user id: [{}]", id);
+		return id;
 	}
 
 	public void save(String username, String password) {

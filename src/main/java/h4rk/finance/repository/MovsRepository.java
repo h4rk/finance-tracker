@@ -10,6 +10,7 @@ import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
 import java.math.BigInteger;
+import java.sql.Types;
 import h4rk.finance.dto.Mov;
 import h4rk.finance.dto.MovWithFullCat;
 
@@ -49,30 +50,24 @@ public class MovsRepository {
 	}
 
 	public List<MovWithFullCat> getAllMovsWithFullCat(long userId) {
-		String sql = "SELECT mov.mov_id, mov.description, mov.amount, mov.date, mov.isIncome, " +
-                     "GROUP_CONCAT(cat.cat_id) as cat_ids, GROUP_CONCAT(cat.name) as cat_names " +
-                     "FROM (SELECT mov_id, description, amount, date, isIncome FROM mov WHERE user_id = ?) mov " +
-                     "LEFT JOIN mov_cat ON mov.mov_id = mov_cat.mov_id " +
-                     "LEFT JOIN cat ON mov_cat.cat_id = cat.cat_id " +
-                     "GROUP BY mov.mov_id";
+		String sql = """
+		SELECT mov.mov_id, mov.description, mov.amount, mov.date, mov.isIncome, cat.cat_id as cat_id, cat.name as cat_name 
+		FROM (SELECT mov_id, description, amount, date, isIncome FROM mov WHERE user_id = ?) mov 
+			LEFT JOIN mov_cat 
+			ON mov.mov_id = mov_cat.mov_id
+			LEFT JOIN cat 
+			ON mov_cat.cat_id = cat.cat_id 
+		""";
 
-		return jdbcTemplate.query(sql, (rs, rowNum) -> {
+		return jdbcTemplate.query(sql, new Object[] { userId }, new int[]{Types.NUMERIC}, (rs, rowNum) -> {
 			MovWithFullCat movWithFullCat = new MovWithFullCat();
 			movWithFullCat.setId(rs.getLong("mov_id"));
 			movWithFullCat.setDescription(rs.getString("description"));
 			movWithFullCat.setAmount(rs.getDouble("amount"));
 			movWithFullCat.setDate(rs.getDate("date"));
 			movWithFullCat.setIncome(rs.getBoolean("isIncome"));
-
-			String catIds = rs.getString("cat_ids");
-			String catNames = rs.getString("cat_names");
-			if (catIds != null && catNames != null) {
-				String[] ids = catIds.split(",");
-				String[] names = catNames.split(",");
-				for (int i = 0; i < ids.length; i++) {
-					movWithFullCat.getCatIds().put(Long.parseLong(ids[i]), names[i]);
-				}
-			}
+			movWithFullCat.setCatIds(rs.getString("cat_id"));
+			movWithFullCat.setCatNames(rs.getString("cat_name"));
 			return movWithFullCat;
 		});
 	}

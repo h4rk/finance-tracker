@@ -20,7 +20,7 @@ import lombok.ToString;
 @ToString
 public class User implements UserDetails {
 
-	private Long id;
+	private Long userId;
 	private String username;
 	private String password;
 	private String roles;

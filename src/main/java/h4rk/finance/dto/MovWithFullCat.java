@@ -21,5 +21,6 @@ public class MovWithFullCat {
 	private double amount;
 	private Date date;
 	private boolean isIncome;
-	Map<Long, String> catIds = new HashMap<Long, String>();
+	private String catIds;
+	private String catNames;
 }

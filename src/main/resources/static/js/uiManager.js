@@ -1,123 +1,126 @@
-import { updateMonthlySummary, addTransaction, addCategory, removeCategory, removeTransaction, filterTransactions, getCategoryName } from './dataManager.js';
+import { 
+    fetchTransactions, 
+    fetchCategories, 
+    createTransaction, 
+    createCategory, 
+    deleteCategory, 
+    deleteTransaction 
+} from './api.js';
 import { updateTrendChart, updateBudgetProgress } from './chartManager.js';
 import { formatCurrency, showNotification } from './utils.js';
-import { initializeBudgetModal, displayBudgetSummary } from './budgetManager.js';
 import { formatDate } from './dateManager.js';
 
-export function loadDashboardData(appData) {
-    updateMonthlySummary(appData);
-    displayMonthlySummary(appData.monthlySummary);
-    updateTrendChart(appData);
-    updateBudgetProgress(appData);
-}
+// Dashboard Loading
+async function loadDashboardData() {
+    try {
+        const [transactions, monthlyData] = await Promise.all([
+            fetchTransactions(),
+            fetch('/analytics/monthly').then(r => r.json())
+        ]);
+        
+        // Verifica che transactions sia un array valido
+        if (!Array.isArray(transactions)) {
+            console.error('Transactions is not an array:', transactions);
+            throw new Error('Invalid transactions data');
+        }
 
-function displayMonthlySummary(summary) {
-    document.getElementById('income').textContent = formatCurrency(summary.income);
-    document.getElementById('expenses').textContent = formatCurrency(summary.expenses);
-    document.getElementById('balance').textContent = formatCurrency(summary.balance);
-}
-
-export function loadCategories(appData) {
-    const categoryList = document.getElementById('categoryList');
-    
-    if (!categoryList) {
-        console.warn('Category list element not found. Skipping category list population.');
-        return;
+        const { monthlyIncome: income, monthlyExpense: expenses } = monthlyData;
+        const delta = income - expenses;
+        
+        displayMonthlySummary({ income, expenses, delta });
+        
+        // Aggiorna i grafici solo se ci sono transazioni
+        if (transactions.length > 0) {
+            updateTrendChart(transactions);
+            updateBudgetProgress(transactions);
+        } else {
+            console.log('No transactions available');
+            // Opzionalmente, mostra un messaggio o uno stato vuoto
+        }
+        
+    } catch (error) {
+        console.error('Error loading dashboard:', error);
+        showNotification('Errore nel caricamento della dashboard', 'error');
     }
-
-    // Clear existing categories
-    categoryList.innerHTML = '';
-
-    // Add categories to the list
-    appData.categories.forEach(category => {
-        const li = document.createElement('li');
-        li.className = 'py-2 flex justify-between items-center';
-        li.innerHTML = `
-            <span>${category.name}</span>
-            <button class="delete-category text-red-600 hover:text-red-800" data-category-id="${category.id}">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
-                </svg>
-            </button>
-        `;
-        categoryList.appendChild(li);
-    });
-
-    console.log('Categories loaded:', appData.categories.length);
-    
-    // Update the category select as well
-    updateCategorySelect(appData);
 }
 
-export function loadTransactions(appData, transactions = appData.transactions) {
-    const transactionTableBody = document.querySelector('#transactionTable tbody');
-    transactionTableBody.innerHTML = '';
-
-    transactions.forEach(transaction => {
-        const row = document.createElement('tr');
-        const categories = getCategoryNames(appData, transaction.catIds);
-
-        row.innerHTML = `
-            <td class="px-6 py-4 whitespace-nowrap">${formatDate(transaction.date)}</td>
-            <td class="px-6 py-4">${transaction.description}</td>
-            <td class="px-6 py-4">${categories}</td>
-            <td class="px-6 py-4">${formatCurrency(transaction.amount)}</td>
-            <td class="px-6 py-4 ${transaction.amount >= 0 ? 'text-green-600' : 'text-red-600'}">
-                ${transaction.amount >= 0 ? 'Entrata' : 'Uscita'}
-            </td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                <button class="text-indigo-600 hover:text-indigo-900 mr-2 view-transaction" data-transaction-id="${transaction.id}">Visualizza</button>
-                <button class="text-red-600 hover:text-red-900 delete-transaction" data-transaction-id="${transaction.id}">Elimina</button>
-            </td>
-        `;
-        transactionTableBody.appendChild(row);
-    });
+// Data Loading Functions
+async function loadCategories() {
+    try {
+        const categories = await fetchCategories();
+        displayCategories(categories);
+        updateCategorySelect(categories);
+        return categories;
+    } catch (error) {
+        console.error('Error loading categories:', error);
+        showNotification('Errore nel caricamento delle categorie', 'error');
+    }
 }
 
-export function setupEventListeners(appData) {
+async function loadTransactions(filters = {}) {
+    try {
+        const transactions = await fetchTransactions();
+        const filteredTransactions = filterTransactions(transactions, filters);
+        displayTransactions(filteredTransactions);
+        return filteredTransactions;
+    } catch (error) {
+        console.error('Error loading transactions:', error);
+        showNotification('Errore nel caricamento delle transazioni', 'error');
+    }
+}
+
+// Event Handlers
+function setupEventListeners() {
     const elements = [
-        { id: 'newTransactionForm', event: 'submit', handler: (e) => handleNewTransaction(e, appData) },
-        { id: 'newCategoryForm', event: 'submit', handler: (e) => handleNewCategory(e, appData) },
-        { id: 'transactionSearch', event: 'input', handler: () => filterTransactions(appData) },
-        { id: 'transactionFilter', event: 'change', handler: () => filterTransactions(appData) },
-        { id: 'trendPeriod', event: 'change', handler: () => updateTrendChart(appData) },
+        { id: 'newTransactionForm', event: 'submit', handler: handleNewTransaction },
+        { id: 'newCategoryForm', event: 'submit', handler: handleNewCategory },
+        { id: 'transactionSearch', event: 'input', handler: handleTransactionFilter },
+        { id: 'transactionFilter', event: 'change', handler: handleTransactionFilter },
+        { id: 'trendPeriod', event: 'change', handler: () => loadDashboardData() },
+        { id: 'transactionType', event: 'change', handler: updateTransactionTypeUI }
     ];
 
     elements.forEach(({ id, event, handler }) => {
         const element = document.getElementById(id);
         if (element) {
             element.addEventListener(event, handler);
-        } else {
-            console.warn(`Element with id '${id}' not found. Event listener for '${event}' event could not be added.`);
         }
     });
 
-    const categoryList = document.getElementById('categoryList');
-    if (categoryList) {
-        categoryList.addEventListener('click', (e) => {
-            const deleteButton = e.target.closest('.delete-category');
-            if (deleteButton) {
-                const categoryId = deleteButton.dataset.categoryId;
-                handleDeleteCategory(categoryId, appData);
-            }
-        });
-    } else {
-        console.warn("Element with id 'categoryList' not found. Event delegation could not be set up.");
-    }
-
-    const transactionTable = document.getElementById('transactionTable');
-    if (transactionTable) {
-        transactionTable.addEventListener('click', (e) => handleTransactionAction(e, appData));
-    } else {
-        console.warn("Element with id 'transactionTable' not found. Event delegation could not be set up.");
-    }
-
+    setupDelegatedEvents();
     setupModalInteractions();
-
-    console.log('Event listeners setup completed');
 }
 
-export async function handleNewTransaction(e, appData) {
+function setupDelegatedEvents() {
+    // Category list delegation
+    const categoryList = document.getElementById('categoryList');
+    if (categoryList) {
+        categoryList.addEventListener('click', async (e) => {
+            const deleteBtn = e.target.closest('.delete-category');
+            if (deleteBtn) {
+                const categoryId = deleteBtn.dataset.categoryId;
+                await handleDeleteCategory(categoryId);
+            }
+        });
+    }
+
+    // Transaction table delegation
+    const transactionTable = document.getElementById('transactionTable');
+    if (transactionTable) {
+        transactionTable.addEventListener('click', async (e) => {
+            const target = e.target;
+            const transactionId = target.dataset.transactionId;
+
+            if (target.classList.contains('delete-transaction')) {
+                await handleDeleteTransaction(transactionId);
+            } else if (target.classList.contains('view-transaction')) {
+                await showTransactionDetails(transactionId);
+            }
+        });
+    }
+}
+
+async function handleNewTransaction(e) {
     e.preventDefault();
     const form = e.target;
     const amount = parseFloat(form.amount.value);
@@ -127,177 +130,217 @@ export async function handleNewTransaction(e, appData) {
         description: form.description.value,
         amount: isIncome ? Math.abs(amount) : -Math.abs(amount),
         date: form.date.value,
-        catIds: Array.from(form.category.selectedOptions).map(option => parseInt(option.value, 10)).filter(id => !isNaN(id))
+        catIds: Array.from(form.category.selectedOptions)
+            .map(option => parseInt(option.value, 10))
+            .filter(id => !isNaN(id))
     };
 
-    console.log('Transaction data before submission:', JSON.stringify(transactionData, null, 2));
-
     try {
-        const result = await addTransaction(appData, transactionData);
-        if (result.success) {
-            loadDashboardData(appData);
-            loadTransactions(appData);
-            form.reset();
-            showNotification(result.message, 'success');
-        } else {
-            throw new Error(result.message || 'Unknown error occurred');
-        }
+        await createTransaction(transactionData);
+        await Promise.all([
+            loadDashboardData(),
+            loadTransactions()
+        ]);
+        form.reset();
+        showNotification('Transazione aggiunta con successo', 'success');
     } catch (error) {
         console.error('Error adding transaction:', error);
-        showNotification('Errore nell\'aggiunta della transazione: ' + error.message, 'error');
+        showNotification('Errore nell\'aggiunta della transazione', 'error');
     }
 }
 
-async function handleNewCategory(e, appData) {
+async function handleNewCategory(e) {
     e.preventDefault();
     const form = e.target;
     const categoryData = {
         name: form.newCategoryName.value,
-        description: form.newCategoryDescription ? form.newCategoryDescription.value : '',
+        description: form.newCategoryDescription?.value || '',
         type: parseInt(form.newCategoryType.value)
     };
 
     try {
-        const newCategory = await addCategory(appData, categoryData);
-        loadCategories(appData);
+        await createCategory(categoryData);
+        await loadCategories();
         form.reset();
         showNotification('Categoria aggiunta con successo', 'success');
     } catch (error) {
         console.error('Error adding category:', error);
-        showNotification('Errore nell\'aggiunta della categoria: ' + error.message, 'error');
+        showNotification('Errore nell\'aggiunta della categoria', 'error');
     }
 }
 
-async function handleDeleteCategory(categoryId, appData) {
+async function handleDeleteCategory(categoryId) {
     try {
-        await removeCategory(appData, categoryId);
-        
-        // Update the category list in the UI
-        loadCategories(appData);
-        
-        // Update the category select in the transaction form
-        updateCategorySelect(appData);
-        
-        // Update any other parts of the UI that might display categories
-        updateBudgetProgress(appData);
-        loadTransactions(appData); // This will refresh the transaction list with updated category names
-        
+        await deleteCategory(categoryId);
+        await Promise.all([
+            loadCategories(),
+            loadTransactions()
+        ]);
         showNotification('Categoria eliminata con successo', 'success');
     } catch (error) {
         console.error('Error deleting category:', error);
-        showNotification('Errore nell\'eliminazione della categoria: ' + error.message, 'error');
+        showNotification('Errore nell\'eliminazione della categoria', 'error');
     }
 }
 
-async function handleTransactionAction(e, appData) {
-    if (e.target.classList.contains('delete-transaction')) {
-        const transactionId = parseInt(e.target.dataset.transactionId);
-        try {
-            await removeTransaction(appData, transactionId);
-            loadDashboardData(appData);
-            loadTransactions(appData);
-            showNotification('Transazione eliminata con successo', 'success');
-        } catch (error) {
-            console.error('Error deleting transaction:', error);
-            showNotification('Errore nell\'eliminazione della transazione: ' + error.message, 'error');
-        }
-    } else if (e.target.classList.contains('edit-transaction')) {
-        const transactionId = parseInt(e.target.dataset.transactionId);
-        // Implement edit transaction logic here
-        console.log('Edit transaction:', transactionId);
+async function handleDeleteTransaction(transactionId) {
+    try {
+        await deleteTransaction(transactionId);
+        await Promise.all([
+            loadDashboardData(),
+            loadTransactions()
+        ]);
+        showNotification('Transazione eliminata con successo', 'success');
+    } catch (error) {
+        console.error('Error deleting transaction:', error);
+        showNotification('Errore nell\'eliminazione della transazione', 'error');
     }
 }
 
-function handleTransactionFilter(appData) {
+async function handleTransactionFilter() {
     const searchTerm = document.getElementById('transactionSearch').value;
     const filterType = document.getElementById('transactionFilter').value;
-    const filteredTransactions = filterTransactions(appData, searchTerm, filterType);
-    loadTransactions(appData, filteredTransactions);
+    await loadTransactions({ searchTerm, filterType });
 }
 
-function updateTransactionTypeLabel() {
-    const transactionType = document.getElementById('transactionType');
-    const label = document.querySelector('label[for="amount"]');
-    label.textContent = transactionType.checked ? 'Importo (Entrata):' : 'Importo (Uscita):';
-    updateTransactionTypeColors();
+// UI Display Functions
+function displayMonthlySummary({ income, expenses, delta }) {
+    document.getElementById('income').textContent = formatCurrency(income);
+    document.getElementById('expenses').textContent = formatCurrency(expenses);
+    const balanceElement = document.getElementById('balance');
+    balanceElement.textContent = formatCurrency(delta);
+    balanceElement.className = delta > 0 ? 'text-green-600' : 'text-red-600';
 }
 
-function updateTransactionTypeColors() {
-    const transactionType = document.getElementById('transactionType');
-    const submitButton = document.getElementById('submitTransaction');
-    
-    if (transactionType.checked) {
-        submitButton.classList.remove('bg-red-600', 'hover:bg-red-700', 'focus:ring-red-500');
-        submitButton.classList.add('bg-green-600', 'hover:bg-green-700', 'focus:ring-green-500');
-    } else {
-        submitButton.classList.remove('bg-green-600', 'hover:bg-green-700', 'focus:ring-green-500');
-        submitButton.classList.add('bg-red-600', 'hover:bg-red-700', 'focus:ring-red-500');
-    }
+function displayCategories(categories) {
+    const categoryList = document.getElementById('categoryList');
+    if (!categoryList) return;
+
+    categoryList.innerHTML = categories.map(category => `
+        <li class="py-2 flex justify-between items-center">
+            <span>${category.name}</span>
+            <button class="delete-category text-red-600 hover:text-red-800" 
+                    data-category-id="${category.id}">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" 
+                          stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16">
+                    </path>
+                </svg>
+            </button>
+        </li>
+    `).join('');
 }
 
-// Add this function to update the UI based on the transaction type
+function displayTransactions(transactions) {
+    const tbody = document.querySelector('#transactionTable tbody');
+    if (!tbody) return;
+
+    tbody.innerHTML = transactions.map(transaction => `
+        <tr>
+            <td class="px-6 py-4 whitespace-nowrap">${formatDate(transaction.date)}</td>
+            <td class="px-6 py-4">${transaction.description}</td>
+            <td class="px-6 py-4">${transaction.categoryName || 'N/A'}</td>
+            <td class="px-6 py-4">${formatCurrency(transaction.amount)}</td>
+            <td class="px-6 py-4 ${transaction.amount >= 0 ? 'text-green-600' : 'text-red-600'}">
+                ${transaction.amount >= 0 ? 'Entrata' : 'Uscita'}
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                <button class="text-indigo-600 hover:text-indigo-900 mr-2 view-transaction" 
+                        data-transaction-id="${transaction.id}">Visualizza</button>
+                <button class="text-red-600 hover:text-red-900 delete-transaction" 
+                        data-transaction-id="${transaction.id}">Elimina</button>
+            </td>
+        </tr>
+    `).join('');
+}
+
+function updateCategorySelect(categories) {
+    const select = document.getElementById('category');
+    if (!select) return;
+
+    select.innerHTML = `
+        <option value="">Seleziona categoria</option>
+        ${categories.map(category => `
+            <option value="${category.id}">${category.name}</option>
+        `).join('')}
+    `;
+}
+
+function filterTransactions(transactions, { searchTerm = '', filterType = 'all' } = {}) {
+    return transactions.filter(transaction => {
+        const matchesSearch = !searchTerm || 
+            transaction.description.toLowerCase().includes(searchTerm.toLowerCase());
+        const matchesType = filterType === 'all' || 
+            (filterType === 'income' && transaction.amount > 0) ||
+            (filterType === 'expense' && transaction.amount < 0);
+        return matchesSearch && matchesType;
+    });
+}
+
 function updateTransactionTypeUI() {
     const transactionType = document.getElementById('transactionType');
     const submitButton = document.getElementById('submitTransaction');
-    if (transactionType.checked) {
-        submitButton.classList.remove('bg-red-600', 'hover:bg-red-700', 'focus:ring-red-500');
-        submitButton.classList.add('bg-green-600', 'hover:bg-green-700', 'focus:ring-green-500');
-    } else {
-        submitButton.classList.remove('bg-green-600', 'hover:bg-green-700', 'focus:ring-green-500');
-        submitButton.classList.add('bg-red-600', 'hover:bg-red-700', 'focus:ring-red-500');
+    const label = document.querySelector('label[for="amount"]');
+    
+    if (!transactionType || !submitButton || !label) return;
+
+    const isIncome = transactionType.checked;
+    
+    // Update label
+    label.textContent = isIncome ? 'Importo (Entrata):' : 'Importo (Uscita):';
+    
+    // Update button colors
+    submitButton.classList.remove(
+        isIncome ? 'bg-red-600' : 'bg-green-600',
+        isIncome ? 'hover:bg-red-700' : 'hover:bg-green-700',
+        isIncome ? 'focus:ring-red-500' : 'focus:ring-green-500'
+    );
+    submitButton.classList.add(
+        isIncome ? 'bg-green-600' : 'bg-red-600',
+        isIncome ? 'hover:bg-green-700' : 'hover:bg-red-700',
+        isIncome ? 'focus:ring-green-500' : 'focus:ring-red-500'
+    );
+}
+
+async function showTransactionDetails(transactionId) {
+    try {
+        const transaction = await fetch(`/movs/${transactionId}`).then(r => r.json());
+        const modal = document.getElementById('transactionDetails');
+        if (!modal) return;
+
+        // Populate modal with transaction details
+        modal.querySelector('.transaction-date').textContent = formatDate(transaction.date);
+        modal.querySelector('.transaction-description').textContent = transaction.description;
+        modal.querySelector('.transaction-amount').textContent = formatCurrency(transaction.amount);
+        modal.querySelector('.transaction-categories').textContent = transaction.categoryName || 'N/A';
+
+        modal.classList.remove('hidden');
+    } catch (error) {
+        console.error('Error loading transaction details:', error);
+        showNotification('Errore nel caricamento dei dettagli della transazione', 'error');
     }
 }
 
-// Add an event listener to update the UI when the transaction type changes
-document.addEventListener('DOMContentLoaded', () => {
-    const transactionType = document.getElementById('transactionType');
-    transactionType.addEventListener('change', updateTransactionTypeUI);
-    updateTransactionTypeUI(); // Initial UI update
-});
-
-// Add other UI-related functions as needed
-
-function updateCategorySelect(appData) {
-    const categorySelect = document.getElementById('category');
-    if (categorySelect) {
-        categorySelect.innerHTML = '<option value="">Seleziona categoria</option>';
-        appData.categories.forEach(category => {
-            const option = document.createElement('option');
-            option.value = category.id;
-            option.textContent = category.name;
-            categorySelect.appendChild(option);
-        });
-    }
-}
-
-function getCategoryNames(appData, catIds) {
-    if (!catIds) return 'Nessuna categoria';
-    
-    // If catIds is not an array, convert it to an array
-    const categoryIds = Array.isArray(catIds) ? catIds : [catIds];
-    
-    if (categoryIds.length === 0) return 'Nessuna categoria';
-    
-    return categoryIds.map(id => getCategoryName(appData, id)).join(', ');
-}
-
-export function setupModalInteractions() {
-    const transactionDetailsModal = document.getElementById('transactionDetails');
-    const categoryDetailsModal = document.getElementById('categoryDetails');
-    const budgetModal = document.getElementById('budgetModal');
-
+function setupModalInteractions() {
     document.addEventListener('click', (e) => {
-        if (e.target.classList.contains('view-transaction')) {
-            const transactionId = e.target.dataset.transactionId;
-            showTransactionDetails(transactionId, appData);
-        } else if (e.target.id === 'closeTransactionDetails') {
-            transactionDetailsModal.classList.add('hidden');
-        } else if (e.target.id === 'closeCategoryDetails') {
-            categoryDetailsModal.classList.add('hidden');
-        } else if (e.target.id === 'addBudgetBtn') {
-            budgetModal.classList.remove('hidden');
-        } else if (e.target.id === 'closeBudgetModal') {
-            budgetModal.classList.add('hidden');
+        if (e.target.matches('[id$="Modal"], [id$="Modal"] [id^="close"]')) {
+            e.target.closest('.modal').classList.add('hidden');
         }
     });
 }
+
+// Initialize UI when DOM is loaded
+document.addEventListener('DOMContentLoaded', () => {
+    setupEventListeners();
+    loadDashboardData();
+    updateTransactionTypeUI();
+});
+
+// Esportiamo tutte le funzioni necessarie
+export {
+    loadDashboardData,
+    loadCategories,
+    loadTransactions,
+    setupEventListeners,
+    handleNewTransaction
+};

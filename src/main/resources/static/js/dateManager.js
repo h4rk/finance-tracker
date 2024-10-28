@@ -1,45 +1,51 @@
 import flatpickr from 'https://cdn.jsdelivr.net/npm/flatpickr@4.6.13/+esm';
-import 'https://cdn.jsdelivr.net/npm/flatpickr@4.6.13/dist/l10n/it.js';
 
-export function initializeFlatpickr() {
-    flatpickr.localize(flatpickr.l10ns.it);
+// Configurazione base per flatpickr
+const FLATPICKR_CONFIG = {
+    dateFormat: "Y-m-d",
+    defaultDate: new Date(),
+    locale: "it",
+    altInput: true,
+    altFormat: "d/m/Y",
+    static: true
+};
+
+// Funzione principale per inizializzare il datepicker
+export function initializeModalDatepicker() {
+    console.log('Initializing modal datepicker...'); // Debug
     
-    const dateInputs = document.querySelectorAll('input[type="date"]');
-    dateInputs.forEach(input => {
-        flatpickr(input, {
-            dateFormat: "d/m/Y",
-            locale: "it",
-            allowInput: true,
-            disableMobile: true,
-            altInput: true,
-            altFormat: "d/m/Y",
-            onReady: function(dateObj, dateStr, instance) {
-                const clear = document.createElement('div');
-                clear.innerHTML = "Clear";
-                clear.className = 'flatpickr-clear';
-                clear.addEventListener('click', (e) => {
-                    e.preventDefault();
-                    instance.clear();
-                    instance.close();
-                });
-                instance.calendarContainer.appendChild(clear);
-            }
-        });
-    });
-}
-
-export function getCurrentDate() {
-    return new Date().toISOString().split('T')[0];
-}
-
-export function formatDate(date) {
-    if (!(date instanceof Date)) {
-        date = new Date(date);
+    const dateInput = document.querySelector('#date');
+    if (!dateInput) {
+        console.warn('Date input not found');
+        return;
     }
-    return date.toLocaleDateString('it-IT', { day: '2-digit', month: '2-digit', year: 'numeric' });
+
+    // Rimuovi istanza precedente se esiste
+    if (dateInput._flatpickr) {
+        dateInput._flatpickr.destroy();
+    }
+
+    return flatpickr(dateInput, FLATPICKR_CONFIG);
 }
 
-export function parseDate(dateString) {
-    const [day, month, year] = dateString.split('/');
-    return new Date(year, month - 1, day);
+// Funzione per formattare le date
+export function formatDate(dateInput) {
+    try {
+        const date = dateInput instanceof Date ? dateInput : new Date(dateInput);
+        if (isNaN(date.getTime())) {
+            throw new Error('Invalid date input');
+        }
+        return date.toLocaleDateString('it-IT', { 
+            day: '2-digit', 
+            month: '2-digit', 
+            year: 'numeric' 
+        });
+    } catch (error) {
+        console.error('Error formatting date:', error);
+        return 'Data non valida';
+    }
 }
+
+// Esportiamo initializeFlatpickr come alias di initializeModalDatepicker
+// per mantenere la compatibilità con il codice esistente
+export const initializeFlatpickr = initializeModalDatepicker;

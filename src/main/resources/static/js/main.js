@@ -1,5 +1,5 @@
-import { loadData, updateMonthlySummary } from './dataManager.js';
-import { setupEventListeners, loadDashboardData, loadCategories, loadTransactions, setupModalInteractions } from './uiManager.js';
+import { loadData } from './dataManager.js';
+import { setupEventListeners, loadDashboardData, loadCategories, loadTransactions } from './uiManager.js';
 import { updateTrendChart } from './chartManager.js';
 import { showNotification } from './utils.js';
 import { initializeBudgetModal } from './budgetManager.js';
@@ -22,7 +22,6 @@ document.addEventListener('DOMContentLoaded', function() {
         try {
             console.log('Starting app initialization');
             await loadData(appData);
-            await updateMonthlySummary(appData);
 
             console.log('Initializing Flatpickr');
             initializeFlatpickr();
@@ -30,9 +29,6 @@ document.addEventListener('DOMContentLoaded', function() {
             console.log('Setting up event listeners');
             setupEventListeners(appData);
             
-            console.log('Setting up modal interactions');
-            setupModalInteractions();
-
             console.log('Loading dashboard data');
             loadDashboardData(appData);
             
@@ -42,9 +38,6 @@ document.addEventListener('DOMContentLoaded', function() {
             console.log('Loading transactions');
             loadTransactions(appData);
 
-            console.log('Updating monthly summary');
-            updateMonthlySummary(appData);
-            
             console.log('Updating trend chart');
             updateTrendChart(appData);
 

@@ -61,13 +61,32 @@ export function handleTransactionFilter(appData) {
 export function showTransactionDetails(transaction, appData) {
     const categories = transaction.catIds.map(id => getCategoryName(appData, id)).join(', ') || 'Nessuna categoria';
     const detailsHtml = `
-        <div class="bg-white p-4 rounded-lg shadow">
-            <h3 class="text-lg font-semibold mb-2">Dettagli Transazione</h3>
-            <p><strong>Data:</strong> ${formatDate(transaction.date)}</p>
-            <p><strong>Descrizione:</strong> ${transaction.description}</p>
-            <p><strong>Categorie:</strong> ${categories}</p>
-            <p><strong>Importo:</strong> ${formatCurrency(transaction.amount)}</p>
-            <p><strong>Tipo:</strong> ${transaction.amount >= 0 ? 'Entrata' : 'Uscita'}</p>
+        <div class="bg-white p-6 rounded-lg shadow-md">
+            <h3 class="text-xl font-semibold mb-4">Dettagli Transazione</h3>
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <p class="text-sm text-gray-600">Data</p>
+                    <p class="font-semibold">${formatDate(transaction.date)}</p>
+                </div>
+                <div>
+                    <p class="text-sm text-gray-600">Importo</p>
+                    <p class="font-semibold ${transaction.amount >= 0 ? 'text-green-600' : 'text-red-600'}">
+                        ${formatCurrency(transaction.amount)}
+                    </p>
+                </div>
+                <div class="col-span-2">
+                    <p class="text-sm text-gray-600">Descrizione</p>
+                    <p class="font-semibold">${transaction.description}</p>
+                </div>
+                <div class="col-span-2">
+                    <p class="text-sm text-gray-600">Categorie</p>
+                    <p class="font-semibold">${categories}</p>
+                </div>
+                <div class="col-span-2">
+                    <p class="text-sm text-gray-600">Tipo</p>
+                    <p class="font-semibold">${transaction.amount >= 0 ? 'Entrata' : 'Uscita'}</p>
+                </div>
+            </div>
         </div>
     `;
     

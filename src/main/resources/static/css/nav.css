@@ -1,0 +1,239 @@
+:root {
+    --primary-color: rgb(79 70 229);
+    --secondary-color: rgb(20, 18, 48);
+    --text-color: #ecf0f1;
+    --hover-color: rgba(78, 70, 229, 0.678);
+    --transition-speed: 0.3s;
+    --nav-width: 300px;
+}
+
+body {
+    transition: margin-left var(--transition-speed) ease-in-out;
+}
+
+.nav-slider {
+    position: fixed;
+    top: 0;
+    left: calc(-1 * var(--nav-width));
+    width: var(--nav-width);
+    height: 100%;
+    background: var(--secondary-color);
+    transition: left var(--transition-speed) ease-in-out;
+    z-index: 1000;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+}
+
+.nav-toggle-btn {
+    position: fixed;
+    top: 1rem;
+    left: 1rem;
+    background: var(--primary-color);
+    border: none;
+    border-radius: 50%;
+    width: 50px;
+    height: 50px;
+    cursor: pointer;
+    z-index: 1001;
+    transition: all var(--transition-speed) ease-in-out;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+.nav-toggle-btn span {
+    display: block;
+    width: 25px;
+    height: 2px;
+    background-color: var(--text-color);
+    margin: 2px 0;
+    transition: all var(--transition-speed) ease-in-out;
+}
+
+.nav-content {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    padding: 2rem;
+}
+
+.logo {
+    display: flex;
+    align-items: center;
+    margin-bottom: 3rem;
+}
+
+.logo img {
+    width: 50px;
+    height: 50px;
+    margin-right: 1rem;
+}
+
+.logo h1 {
+    color: var(--text-color);
+    font-size: 1.5rem;
+    font-weight: 600;
+}
+
+.nav-links {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.nav-item {
+    display: flex;
+    align-items: center;
+    color: var(--text-color);
+    text-decoration: none;
+    padding: 1rem 0;
+    transition: all var(--transition-speed) ease;
+    border-radius: 10px;
+    margin-bottom: 0.5rem;
+}
+
+.nav-item:hover {
+    background-color: var(--hover-color);
+    padding-left: 1rem;
+}
+
+.nav-item i {
+    margin-right: 1rem;
+    font-size: 1.2rem;
+    width: 25px;
+    text-align: center;
+}
+
+.logout-container {
+    margin-top: auto;
+}
+
+.logout-button {
+    display: flex;
+    align-items: center;
+    background: none;
+    border: none;
+    color: var(--text-color);
+    font-size: 1rem;
+    cursor: pointer;
+    padding: 1rem 0;
+    transition: all var(--transition-speed) ease;
+    width: 100%;
+    border-radius: 10px;
+}
+
+.logout-button:hover {
+    background-color: #e74c3c;
+    padding-left: 1rem;
+}
+
+.logout-button i {
+    margin-right: 1rem;
+    font-size: 1.2rem;
+}
+
+body.nav-open {
+    margin-left: var(--nav-width);
+}
+
+body.nav-open .nav-slider {
+    left: 0;
+}
+
+body.nav-open .nav-toggle-btn {
+    left: calc(var(--nav-width) + 10px);
+    transform: rotate(180deg);
+}
+
+body.nav-open .nav-toggle-btn span:nth-child(1) {
+    transform: rotate(45deg) translate(5px, 5px);
+}
+
+body.nav-open .nav-toggle-btn span:nth-child(2) {
+    opacity: 0;
+}
+
+body.nav-open .nav-toggle-btn span:nth-child(3) {
+    transform: rotate(-45deg) translate(5px, -5px);
+}
+
+@media screen and (max-width: 768px) {
+    .nav-slider {
+        width: 100%;
+        left: -100%;
+    }
+
+    body.nav-open {
+        margin-left: 0;
+        overflow: hidden;
+    }
+
+    body.nav-open .nav-slider {
+        left: 0;
+    }
+
+    body.nav-open .nav-toggle-btn {
+        left: auto;
+        right: 1rem;
+        top: 1rem;
+    }
+
+    .nav-content {
+        padding-top: 4rem;
+    }
+
+    .logo {
+        justify-content: center;
+    }
+
+    .nav-links {
+        text-align: center;
+    }
+
+    .nav-item {
+        justify-content: center;
+    }
+
+    .nav-item i {
+        margin-right: 0.5rem;
+    }
+
+    .logout-container {
+        display: flex;
+        justify-content: center;
+    }
+
+    .logout-button {
+        justify-content: center;
+    }
+}
+
+/* Add some subtle animations */
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+.nav-item, .logout-button {
+    animation: fadeIn 0.5s ease-out;
+}
+
+/* Add a subtle hover effect to the logo */
+.logo {
+    transition: transform var(--transition-speed) ease;
+}
+
+.logo:hover {
+    transform: scale(1.05);
+}
+
+/* Add a pulsing effect to the toggle button */
+@keyframes pulse {
+    0% { box-shadow: 0 0 0 0 rgba(78, 70, 229, 0.678); }
+    70% { box-shadow: 0 0 0 10px rgba(52, 152, 219, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(52, 152, 219, 0); }
+}
+
+.nav-toggle-btn {
+    animation: pulse 2s infinite;
+}

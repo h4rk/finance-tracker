@@ -48,3 +48,141 @@ button[type="submit"]:hover {
 .text-indigo-600:hover {
     color: #4f46e5;
 }
+
+/* Toggle switch styles */
+.switch {
+    position: relative;
+    display: inline-block;
+    width: 60px;
+    height: 34px;
+}
+
+.switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #ccc;
+    transition: .4s;
+}
+
+.slider:before {
+    position: absolute;
+    content: "";
+    height: 26px;
+    width: 26px;
+    left: 4px;
+    bottom: 4px;
+    background-color: white;
+    transition: .4s;
+}
+
+input:checked + .slider {
+    background-color: #2196F3;
+}
+
+input:focus + .slider {
+    box-shadow: 0 0 1px #2196F3;
+}
+
+input:checked + .slider:before {
+    transform: translateX(26px);
+}
+
+.slider.round {
+    border-radius: 34px;
+}
+
+.slider.round:before {
+    border-radius: 50%;
+}
+
+/* Modal styles */
+.modal {
+    transition: opacity 0.3s ease-in-out;
+}
+
+.modal-content {
+    transform: scale(0.9);
+    transition: transform 0.3s ease-in-out;
+}
+
+.modal.show .modal-content {
+    transform: scale(1);
+}
+
+/* Notification styles */
+#notification {
+    transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out;
+}
+
+#notification.show {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+/* Additional responsive styles */
+@media (max-width: 640px) {
+    .container {
+        padding-left: 1rem;
+        padding-right: 1rem;
+    }
+}
+
+/* Improve form input styles */
+input[type="text"],
+input[type="number"],
+input[type="date"],
+select {
+    transition: border-color 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
+}
+
+input[type="text"]:focus,
+input[type="number"]:focus,
+input[type="date"]:focus,
+select:focus {
+    border-color: #4f46e5;
+    box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+}
+
+/* Improve button styles */
+button {
+    transition: all 0.3s ease-in-out;
+}
+
+button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+/* Improve table styles */
+#transactionTable {
+    border-collapse: separate;
+    border-spacing: 0;
+}
+
+#transactionTable th,
+#transactionTable td {
+    border: 1px solid #e5e7eb;
+}
+
+#transactionTable th {
+    background-color: #f3f4f6;
+}
+
+#transactionTable tr:hover {
+    background-color: #f9fafb;
+}
+
+/* Add smooth scrolling to the page */
+html {
+    scroll-behavior: smooth;
+}

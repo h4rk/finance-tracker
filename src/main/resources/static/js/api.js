@@ -3,10 +3,7 @@ import { API_BASE_URL } from './config.js';
 // Function to fetch categories from the server
 export async function fetchCategories() {
     try {
-        const response = await fetch('/cats');
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
+        const response = await authenticatedFetch('/cats');
         return await response.json();
     } catch (error) {
         console.error('Error fetching categories:', error);
@@ -17,16 +14,7 @@ export async function fetchCategories() {
 // Function to fetch transactions from the server
 export async function fetchTransactions() {
     try {
-        const response = await fetch('/movs');
-        if (!response.ok) {
-            const errorBody = await response.text();
-            console.error('Error response:', errorBody);
-            if (response.status === 400) {
-                throw new Error(`Bad Request: The server couldn't understand the request. Details: ${errorBody}`);
-            } else {
-                throw new Error(`HTTP error! status: ${response.status}, body: ${errorBody}`);
-            }
-        }
+        const response = await authenticatedFetch('/movs');
         const data = await response.json();
         console.log('Fetched transactions:', data);
         return data;
@@ -215,4 +203,24 @@ export async function testCreateMovement() {
         const errorText = await response.text();
         console.error('Error creating test movement:', errorText);
     }
+}
+
+async function authenticatedFetch(url, options = {}) {
+    const defaultOptions = {
+        credentials: 'include',
+        headers: {
+            'Content-Type': 'application/json',
+            // Add any other default headers here
+        },
+    };
+
+    const response = await fetch(url, { ...defaultOptions, ...options });
+
+    if (!response.ok) {
+        const errorBody = await response.text();
+        console.error('Error response:', errorBody);
+        throw new Error(`HTTP error! status: ${response.status}, body: ${errorBody}`);
+    }
+
+    return response;
 }

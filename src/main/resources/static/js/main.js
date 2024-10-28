@@ -1,8 +1,9 @@
 import { loadData, updateMonthlySummary } from './dataManager.js';
-import { setupEventListeners, loadDashboardData, loadCategories, loadTransactions } from './uiManager.js';
+import { setupEventListeners, loadDashboardData, loadCategories, loadTransactions, setupModalInteractions } from './uiManager.js';
 import { updateTrendChart } from './chartManager.js';
 import { showNotification } from './utils.js';
 import { initializeBudgetModal } from './budgetManager.js';
+import { initializeFlatpickr } from './dateManager.js';
 
 import { testCreateMovement } from './api.js';
 window.testCreateMovement = testCreateMovement;
@@ -23,11 +24,14 @@ document.addEventListener('DOMContentLoaded', function() {
             await loadData(appData);
             await updateMonthlySummary(appData);
 
+            console.log('Initializing Flatpickr');
+            initializeFlatpickr();
+
             console.log('Setting up event listeners');
             setupEventListeners(appData);
             
-            console.log('Initializing budget modal');
-            initializeBudgetModal(appData);
+            console.log('Setting up modal interactions');
+            setupModalInteractions();
 
             console.log('Loading dashboard data');
             loadDashboardData(appData);
@@ -60,3 +64,26 @@ document.addEventListener('DOMContentLoaded', function() {
 
 // Export appData for use in other modules if needed
 export { appData };
+
+// Add these functions to your existing JavaScript
+
+function setupModals() {
+    // Category Modal
+    const categoryModal = document.getElementById('categoryModal');
+    const addCategoryBtn = document.getElementById('addCategoryBtn');
+    const closeCategoryModal = document.getElementById('closeCategoryModal');
+
+    addCategoryBtn.addEventListener('click', () => categoryModal.classList.remove('hidden'));
+    closeCategoryModal.addEventListener('click', () => categoryModal.classList.add('hidden'));
+
+    // Transaction Modal
+    const transactionModal = document.getElementById('transactionModal');
+    const addTransactionBtn = document.getElementById('addTransactionBtn');
+    const closeTransactionModal = document.getElementById('closeTransactionModal');
+
+    addTransactionBtn.addEventListener('click', () => transactionModal.classList.remove('hidden'));
+    closeTransactionModal.addEventListener('click', () => transactionModal.classList.add('hidden'));
+}
+
+// Call this function when the page loads
+document.addEventListener('DOMContentLoaded', setupModals);

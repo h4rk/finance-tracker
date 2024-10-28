@@ -2,6 +2,7 @@ import { updateMonthlySummary, addTransaction, addCategory, removeCategory, remo
 import { updateTrendChart, updateBudgetProgress } from './chartManager.js';
 import { formatCurrency, showNotification } from './utils.js';
 import { initializeBudgetModal, displayBudgetSummary } from './budgetManager.js';
+import { formatDate } from './dateManager.js';
 
 export function loadDashboardData(appData) {
     updateMonthlySummary(appData);
@@ -54,20 +55,18 @@ export function loadTransactions(appData, transactions = appData.transactions) {
 
     transactions.forEach(transaction => {
         const row = document.createElement('tr');
-        const categories = Object.entries(transaction.catIds)
-            .map(([id, name]) => name)
-            .join(', ');
+        const categories = getCategoryNames(appData, transaction.catIds);
 
         row.innerHTML = `
-            <td class="px-6 py-4 whitespace-nowrap">${transaction.date}</td>
+            <td class="px-6 py-4 whitespace-nowrap">${formatDate(transaction.date)}</td>
             <td class="px-6 py-4">${transaction.description}</td>
             <td class="px-6 py-4">${categories}</td>
-            <td class="px-6 py-4">${formatCurrency(Math.abs(transaction.amount))}</td>
-            <td class="px-6 py-4 ${transaction.income ? 'text-green-600' : 'text-red-600'}">
-                ${transaction.income ? 'Entrata' : 'Uscita'}
+            <td class="px-6 py-4">${formatCurrency(transaction.amount)}</td>
+            <td class="px-6 py-4 ${transaction.amount >= 0 ? 'text-green-600' : 'text-red-600'}">
+                ${transaction.amount >= 0 ? 'Entrata' : 'Uscita'}
             </td>
             <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                <button class="text-indigo-600 hover:text-indigo-900 mr-2 edit-transaction" data-transaction-id="${transaction.id}">Modifica</button>
+                <button class="text-indigo-600 hover:text-indigo-900 mr-2 view-transaction" data-transaction-id="${transaction.id}">Visualizza</button>
                 <button class="text-red-600 hover:text-red-900 delete-transaction" data-transaction-id="${transaction.id}">Elimina</button>
             </td>
         `;
@@ -112,6 +111,8 @@ export function setupEventListeners(appData) {
     } else {
         console.warn("Element with id 'transactionTable' not found. Event delegation could not be set up.");
     }
+
+    setupModalInteractions();
 
     console.log('Event listeners setup completed');
 }
@@ -280,3 +281,23 @@ function getCategoryNames(appData, catIds) {
     return categoryIds.map(id => getCategoryName(appData, id)).join(', ');
 }
 
+export function setupModalInteractions() {
+    const transactionDetailsModal = document.getElementById('transactionDetails');
+    const categoryDetailsModal = document.getElementById('categoryDetails');
+    const budgetModal = document.getElementById('budgetModal');
+
+    document.addEventListener('click', (e) => {
+        if (e.target.classList.contains('view-transaction')) {
+            const transactionId = e.target.dataset.transactionId;
+            showTransactionDetails(transactionId, appData);
+        } else if (e.target.id === 'closeTransactionDetails') {
+            transactionDetailsModal.classList.add('hidden');
+        } else if (e.target.id === 'closeCategoryDetails') {
+            categoryDetailsModal.classList.add('hidden');
+        } else if (e.target.id === 'addBudgetBtn') {
+            budgetModal.classList.remove('hidden');
+        } else if (e.target.id === 'closeBudgetModal') {
+            budgetModal.classList.add('hidden');
+        }
+    });
+}

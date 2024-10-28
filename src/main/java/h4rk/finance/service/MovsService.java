@@ -15,6 +15,7 @@ import h4rk.finance.exceptions.DeleteMovException;
 import h4rk.finance.exceptions.GetMovByIdException;
 import h4rk.finance.exceptions.GetMovsException;
 import h4rk.finance.exceptions.PostMovException;
+import h4rk.finance.exceptions.PutMovException;
 import h4rk.finance.repository.MovsRepository;
 import h4rk.finance.security.service.UserService;
 import lombok.extern.slf4j.Slf4j;
@@ -68,7 +69,7 @@ public class MovsService {
 				}
 			}
 			//Post the movement
-			BigInteger new_id = movsRepository.postMovs(new Mov(movWithCat.getDescription(),
+			Long new_id = movsRepository.postMovs(new Mov(movWithCat.getDescription(),
 																 movWithCat.getAmount(), movWithCat.getDate(),
 																 movWithCat.isIncome()), userService.getCurrentUserId());
 			//Post the categories for the movement
@@ -97,5 +98,34 @@ public class MovsService {
 			log.error("Error executing getAllMovsWithFullCat(): [{}]", e.getMessage());
 			throw new GetMovsException("Error while getting the movements with full category.", e);
 		}
+	}
+
+	@Transactional(rollbackFor = Exception.class)
+	public void putMovs(long id, MovWithCat movWithCat) {
+		log.info("Executing putMovs() with id: [{}] and mov: [{}]...", id, movWithCat);
+		//Check if the movement exists for the user
+		MovWithCat mov = movsRepository.getMovWithCatById(id, userService.getCurrentUserId());
+		if (mov == null) {
+			throw new PutMovException("Movement not found.", new RuntimeException("Movement not found."));
+		}
+		
+		//Prevent using category ids that don't exist/belong to the current user
+		Set<Long> valid_cats_ids = new HashSet<>(catsService.getCats().stream().map(Cat::getId).collect(Collectors.toList()));
+		for (Long cat_id : movWithCat.getCatIds()) {
+			if (!valid_cats_ids.contains(cat_id)) {
+				throw new PostMovException("Invalid category id: ["+cat_id+"]", 
+					new RuntimeException("Category not found for the current user."));
+			}
+		}
+
+		if(!new HashSet<>(movWithCat.getCatIds()).equals(new HashSet<>(mov.getCatIds()))) {
+			movCatService.deleteAllMovCats(id);
+			movCatService.postMovCat(id, movWithCat.getCatIds());
+		}
+		
+		//Update the movement
+		movsRepository.putMovs(id, new Mov(movWithCat.getDescription(),
+											movWithCat.getAmount(), movWithCat.getDate(),
+											movWithCat.isIncome()), userService.getCurrentUserId());
 	}
 }

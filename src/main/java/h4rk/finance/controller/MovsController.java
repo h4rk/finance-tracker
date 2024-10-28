@@ -45,6 +45,13 @@ public class MovsController {
 		return ResponseEntity.ok().build();
 	}
 
+	@Operation(summary = "Update a movement", description = "Updates a movement by its ID")
+	@PutMapping("/movs/{id}")
+	public ResponseEntity<?> putMovs(@PathVariable("id") long id, @RequestBody MovWithCat movWithCat) {
+		mService.putMovs(id, movWithCat);
+		return ResponseEntity.ok().build();
+	}
+
 	@Operation(summary = "Delete a movement", description = "Deletes a movement by its ID")
 	@DeleteMapping("/movs/{id}")
 	public ResponseEntity<?> deleteMovs(@PathVariable("id") long id) {

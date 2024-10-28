@@ -21,6 +21,6 @@ public class MovWithFullCat {
 	private double amount;
 	private Date date;
 	private boolean isIncome;
-	private String catIds;
-	private String catNames;
+	private Long catId;
+	private String catName;
 }

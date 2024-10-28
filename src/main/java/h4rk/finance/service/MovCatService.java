@@ -16,12 +16,16 @@ public class MovCatService {
 	@Autowired
 	private MovCatRepository movCatRepository;
 
-	public void postMovCat(BigInteger movId, List<Long> catIds) {
+	public void postMovCat(Long movId, List<Long> catIds) {
 		try {
 			movCatRepository.postMovCat(movId, catIds);
 		} catch (Exception e) {
 			log.error("Error executing postMovCat(): movId=["+movId+"], catIds=["+catIds+"]");
 			throw new PostMovCatException("Error while posting categories for movement.", e);
 		}
+	}
+
+	public void deleteAllMovCats(long movId) {
+		movCatRepository.deleteAllMovCats(movId);
 	}
 }

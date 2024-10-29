@@ -5,7 +5,6 @@ import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import java.math.BigInteger;
 
 import h4rk.finance.dto.Cat;
 import h4rk.finance.dto.Mov;
@@ -117,12 +116,11 @@ public class MovsService {
 					new RuntimeException("Category not found for the current user."));
 			}
 		}
-
+		//If there are differences in the categories, delete old and post new
 		if(!new HashSet<>(movWithCat.getCatIds()).equals(new HashSet<>(mov.getCatIds()))) {
 			movCatService.deleteAllMovCats(id);
 			movCatService.postMovCat(id, movWithCat.getCatIds());
 		}
-		
 		//Update the movement
 		movsRepository.putMovs(id, new Mov(movWithCat.getDescription(),
 											movWithCat.getAmount(), movWithCat.getDate(),

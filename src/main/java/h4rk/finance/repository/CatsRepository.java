@@ -50,7 +50,16 @@ public class CatsRepository {
     }
 
 	public Cat getCatById(Long id, long userId) {
-		return jdbcTemplate.queryForObject("SELECT * FROM cat WHERE cat_id = ? AND user_id = ?", (rs, rowNum) -> new Cat(rs.getLong("cat_id"), rs.getString("name"), rs.getString("description"), rs.getShort("cat_type")), id, userId);
+		return jdbcTemplate.queryForObject("SELECT * FROM cat WHERE cat_id = ? AND user_id = ?", 
+		(rs, rowNum) -> new Cat(rs.getLong("cat_id"), 
+			rs.getString("name"), 
+			rs.getString("description"), 
+			rs.getShort("cat_type")), id, userId);
+	}
+
+	public void putCat(Cat cat, long id, long userId) {
+		jdbcTemplate.update("UPDATE cat SET name = ?, description = ?, cat_type = ? WHERE cat_id = ? AND user_id = ?", 
+		cat.getName(), cat.getDescription(), cat.getType(), id, userId);
 	}
     
 }

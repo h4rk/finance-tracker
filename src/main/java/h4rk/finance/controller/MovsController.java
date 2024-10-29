@@ -31,11 +31,8 @@ public class MovsController {
 	@GetMapping("/movs/{id}")
 	public ResponseEntity<Mov> getMovById(@PathVariable("id") long id) {
 		Mov mov = mService.getMovById(id);
-		if (mov != null) {
-			return ResponseEntity.ok(mov);
-		} else {
-			return ResponseEntity.notFound().build();
-		}
+		return ResponseEntity.ok(mov);
+		
 	}
 
 	@Operation(summary = "Create a new movement", description = "Creates a new movement with the provided details")

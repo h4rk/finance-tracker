@@ -13,7 +13,6 @@ import h4rk.finance.exceptions.GetCatsException;
 import h4rk.finance.exceptions.PostCatsException;
 import h4rk.finance.repository.CatTypeRepository;
 import h4rk.finance.repository.CatsRepository;
-import h4rk.finance.security.dto.User;
 import h4rk.finance.security.service.UserService;
 import lombok.extern.slf4j.Slf4j;
 

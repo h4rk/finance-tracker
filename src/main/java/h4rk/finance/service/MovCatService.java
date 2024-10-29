@@ -4,7 +4,6 @@ import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import java.math.BigInteger;
 
 import h4rk.finance.exceptions.PostMovCatException;
 import h4rk.finance.repository.MovCatRepository;

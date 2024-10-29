@@ -33,7 +33,9 @@
 </head>
 <body th:class="${bodyClass} + ' font-inter bg-gray-100'">
     <div class="flex flex-col min-h-screen">
-        <th:block th:replace="~{layout/nav :: nav}"></th:block>
+        <th:block th:if="${!#strings.contains(title, 'Login') && !#strings.contains(title, 'Registrazione')}">
+            <th:block th:replace="~{layout/nav :: nav}"></th:block>
+        </th:block>
         <main class="flex-grow container mx-auto px-4 sm:px-6 lg:px-8 py-8">
             <th:block th:replace="${content}"></th:block>
         </main>

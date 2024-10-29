@@ -1,10 +1,13 @@
 import { 
-    fetchTransactions, 
     createTransaction, 
-    deleteTransaction 
+    deleteTransaction, 
+    fetchTransactions,
+    getTransactionDetails 
 } from './api.js';
 import { formatCurrency, showNotification } from './utils.js';
-import { formatDate, initializeModalDatepicker } from './dateManager.js';
+import { formatDate } from './dateManager.js';
+import { loadDashboardData } from './uiManager.js';
+import { updateTrendChart } from './chartManager.js';
 
 export async function handleNewTransaction(e) {
     e.preventDefault();
@@ -24,223 +27,64 @@ export async function handleNewTransaction(e) {
         
         // Aggiorna UI dopo la creazione
         await Promise.all([
-            loadTransactions(),
-            updateDashboardData()
+            updateTransactionList(),
+            loadDashboardData(),
+            updateTrendChart()
         ]);
         
+        // Chiudi la modale e resetta il form
         form.reset();
-        showNotification('Transazione aggiunta con successo', 'success');
+        document.getElementById('transactionModal').classList.add('hidden');
+        showNotification('Transaction created successfully', 'success');
     } catch (error) {
         console.error('Error creating transaction:', error);
-        showNotification('Errore nella creazione della transazione', 'error');
+        showNotification('Error creating transaction', 'error');
     }
 }
 
-export async function handleDeleteTransaction(transactionId) {
-    if (!confirm('Sei sicuro di voler eliminare questa transazione?')) return;
+export async function handleDeleteTransaction(id) {
+    if (!confirm('Are you sure you want to delete this transaction?')) return;
     
     try {
-        await deleteTransaction(transactionId);
+        await deleteTransaction(id);
         
         // Aggiorna UI dopo l'eliminazione
         await Promise.all([
-            loadTransactions(),
-            updateDashboardData()
+            loadDashboardData(),
+            updateTrendChart()
         ]);
         
-        showNotification('Transazione eliminata con successo', 'success');
+        showNotification('Transaction deleted successfully', 'success');
     } catch (error) {
         console.error('Error deleting transaction:', error);
-        showNotification('Errore nell\'eliminazione della transazione', 'error');
+        showNotification('Error deleting transaction', 'error');
     }
 }
 
-export async function loadTransactions(filters = {}) {
+export async function showTransactionDetails(id) {
     try {
-        const transactions = await fetchTransactions();
-        displayTransactions(filterTransactions(transactions, filters));
-    } catch (error) {
-        console.error('Error loading transactions:', error);
-        showNotification('Errore nel caricamento delle transazioni', 'error');
-    }
-}
-
-export async function showTransactionDetails(transactionId) {
-    try {
-        const response = await fetch(`/movs/${transactionId}`);
-        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-        
-        const transaction = await response.json();
+        const transaction = await getTransactionDetails(id);
         const modal = document.getElementById('transactionDetails');
         if (!modal) return;
 
-        modal.innerHTML = `
-            <div class="bg-white p-4 rounded-lg shadow">
-                <h3 class="text-lg font-semibold mb-2">Dettagli Transazione</h3>
-                <p><strong>Data:</strong> ${formatDate(transaction.date)}</p>
-                <p><strong>Descrizione:</strong> ${transaction.description}</p>
-                <p><strong>Importo:</strong> ${formatCurrency(transaction.amount)}</p>
-                <p><strong>Tipo:</strong> ${transaction.amount >= 0 ? 'Entrata' : 'Uscita'}</p>
-                <p><strong>Categorie:</strong> ${transaction.categoryName || 'N/A'}</p>
-            </div>
-        `;
-        
+        // Popola i dettagli della transazione
+        modal.querySelector('#transactionDate').textContent = formatDate(transaction.date);
+        modal.querySelector('#transactionDescription').textContent = transaction.description;
+        modal.querySelector('#transactionCategory').textContent = transaction.categoryName;
+        modal.querySelector('#transactionAmount').textContent = formatCurrency(transaction.amount);
+        modal.querySelector('#transactionType').textContent = transaction.amount > 0 ? 'Income' : 'Expense';
+
         modal.classList.remove('hidden');
     } catch (error) {
         console.error('Error loading transaction details:', error);
-        showNotification('Errore nel caricamento dei dettagli', 'error');
+        showNotification('Error loading transaction details', 'error');
     }
 }
 
-function filterTransactions(transactions, { searchTerm = '', type = 'all', startDate = null, endDate = null } = {}) {
-    return transactions.filter(transaction => {
-        const matchesSearch = !searchTerm || 
-            transaction.description.toLowerCase().includes(searchTerm.toLowerCase());
-            
-        const matchesType = type === 'all' || 
-            (type === 'income' && transaction.amount > 0) ||
-            (type === 'expense' && transaction.amount < 0);
-            
-        const matchesDateRange = (!startDate || new Date(transaction.date) >= new Date(startDate)) &&
-                                (!endDate || new Date(transaction.date) <= new Date(endDate));
-                                
-        return matchesSearch && matchesType && matchesDateRange;
-    });
-}
-
-function displayTransactions(transactions) {
-    const container = document.getElementById('transactionsList');
-    if (!container) return;
-
-    if (!transactions.length) {
-        container.innerHTML = `
-            <div class="text-center py-4 text-gray-500">
-                Nessuna transazione trovata
-            </div>
-        `;
-        return;
-    }
-
-    container.innerHTML = transactions.map(transaction => `
-        <div class="bg-white p-4 rounded-lg shadow mb-4">
-            <div class="flex justify-between items-center">
-                <div>
-                    <p class="font-semibold">${transaction.description}</p>
-                    <p class="text-sm text-gray-600">${formatDate(transaction.date)}</p>
-                </div>
-                <div class="text-right">
-                    <p class="font-semibold ${transaction.amount >= 0 ? 'text-green-600' : 'text-red-600'}">
-                        ${formatCurrency(transaction.amount)}
-                    </p>
-                    <p class="text-sm text-gray-600">${transaction.categoryName || 'N/A'}</p>
-                </div>
-            </div>
-            <div class="mt-2 flex justify-end space-x-2">
-                <button 
-                    class="text-blue-600 hover:text-blue-800"
-                    onclick="showTransactionDetails(${transaction.id})">
-                    Dettagli
-                </button>
-                <button 
-                    class="text-red-600 hover:text-red-800"
-                    onclick="handleDeleteTransaction(${transaction.id})">
-                    Elimina
-                </button>
-            </div>
-        </div>
-    `).join('');
-}
-
-async function updateDashboardData() {
-    try {
-        const [monthlyData, budgetData] = await Promise.all([
-            fetch('/analytics/monthly').then(r => r.json()),
-            fetch('/analytics/budget-summary').then(r => r.json())
-        ]);
-
-        updateDashboardUI(monthlyData, budgetData);
-    } catch (error) {
-        console.error('Error updating dashboard:', error);
-        showNotification('Errore nell\'aggiornamento della dashboard', 'error');
-    }
-}
-
-function updateDashboardUI(monthlyData, budgetData) {
-    // Aggiorna i totali mensili
-    if (monthlyData) {
-        document.getElementById('monthlyIncome')?.textContent = 
-            formatCurrency(monthlyData.monthlyIncome);
-        document.getElementById('monthlyExpenses')?.textContent = 
-            formatCurrency(monthlyData.monthlyExpense);
-    }
-
-    // Aggiorna il riepilogo budget
-    if (budgetData) {
-        document.getElementById('totalBudget')?.textContent = 
-            formatCurrency(budgetData.totalBudget);
-        document.getElementById('totalSpent')?.textContent = 
-            formatCurrency(budgetData.totalSpent);
-    }
-}
-
-export function initializeTransactionListeners() {
-    const form = document.getElementById('newTransactionForm');
-    const searchInput = document.getElementById('transactionSearch');
-    const typeFilter = document.getElementById('transactionType');
-    const dateFilter = document.getElementById('dateFilter');
-
-    if (form) {
-        form.addEventListener('submit', handleNewTransaction);
-    }
-
-    if (searchInput) {
-        searchInput.addEventListener('input', e => {
-            loadTransactions({ searchTerm: e.target.value });
-        });
-    }
-
-    if (typeFilter) {
-        typeFilter.addEventListener('change', e => {
-            loadTransactions({ type: e.target.value });
-        });
-    }
-
-    if (dateFilter) {
-        dateFilter.addEventListener('change', e => {
-            const [startDate, endDate] = e.target.value.split(',');
-            loadTransactions({ startDate, endDate });
-        });
-    }
-
-    // Aggiungi listener per aprire/chiudere la modale
-    const addTransactionBtn = document.getElementById('addTransactionBtn');
-    const closeModalBtn = document.getElementById('closeTransactionModal');
-    
-    if (addTransactionBtn) {
-        addTransactionBtn.addEventListener('click', showTransactionModal);
-    }
-    
-    if (closeModalBtn) {
-        closeModalBtn.addEventListener('click', hideTransactionModal);
-    }
-
-    // Inizializza il datepicker al caricamento della pagina
-    initializeModalDatepicker();
-}
-
-function showTransactionModal() {
+export function showTransactionModal() {
     const modal = document.getElementById('transactionModal');
     if (!modal) return;
-    
     modal.classList.remove('hidden');
-    
-    // Inizializza il datepicker dopo che la modale è visibile
-    setTimeout(() => {
-        const instance = initializeModalDatepicker();
-        if (instance) {
-            console.log('Datepicker initialized successfully');
-        }
-    }, 0);
 }
 
 export function hideTransactionModal() {
@@ -248,8 +92,63 @@ export function hideTransactionModal() {
     if (!modal) return;
     
     modal.classList.add('hidden');
-    
-    // Reset del form
     const form = document.getElementById('newTransactionForm');
     if (form) form.reset();
 }
+
+// Funzione per aggiornare la lista delle transazioni
+export async function updateTransactionList() {
+    try {
+        const transactions = await fetchTransactions();
+        const tbody = document.querySelector('#transactionTable tbody');
+        if (!tbody) return;
+
+        tbody.innerHTML = transactions.map(transaction => `
+            <tr class="hover:bg-gray-50">
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    ${formatDate(transaction.date)}
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                    ${transaction.description}
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    ${transaction.categoryName || 'N/A'}
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm ${transaction.amount > 0 ? 'text-green-600' : 'text-red-600'}">
+                    ${formatCurrency(transaction.amount)}
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                    <button 
+                        class="text-indigo-600 hover:text-indigo-900 mr-2 view-transaction" 
+                        data-transaction-id="${transaction.id}">
+                        Details
+                    </button>
+                    <button 
+                        class="text-red-600 hover:text-red-900 delete-transaction" 
+                        data-transaction-id="${transaction.id}">
+                        Delete
+                    </button>
+                </td>
+            </tr>
+        `).join('');
+
+        // Event listeners per i pulsanti
+        tbody.querySelectorAll('.view-transaction').forEach(button => {
+            button.addEventListener('click', () => {
+                const id = button.dataset.transactionId;
+                if (id) showTransactionDetails(id);
+            });
+        });
+
+        tbody.querySelectorAll('.delete-transaction').forEach(button => {
+            button.addEventListener('click', () => {
+                const id = button.dataset.transactionId;
+                if (id) handleDeleteTransaction(id);
+            });
+        });
+    } catch (error) {
+        console.error('Error updating transaction list:', error);
+        showNotification('Error updating transactions', 'error');
+    }
+}
+

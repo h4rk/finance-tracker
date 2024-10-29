@@ -1,13 +1,14 @@
 import { fetchCategories, createCategory, deleteCategory } from './api.js';
 import { showNotification } from './utils.js';
-import { formatCurrency } from './utils.js';
+import { loadCategories } from './uiManager.js';
+
+// PORCO DE DIOOOOOO
 
 export async function handleNewCategory(e) {
     e.preventDefault();
     const form = e.target;
     const categoryData = {
         name: form.newCategoryName.value,
-        description: form.newCategoryDescription ? form.newCategoryDescription.value : '',
         type: parseInt(form.newCategoryType.value)
     };
 
@@ -15,10 +16,11 @@ export async function handleNewCategory(e) {
         await createCategory(categoryData);
         await loadCategories();
         form.reset();
-        showNotification('Categoria aggiunta con successo', 'success');
+        document.getElementById('categoryModal').classList.add('hidden');
+        showNotification('Category created successfully', 'success');
     } catch (error) {
-        console.error('Error adding category:', error);
-        showNotification('Errore nell\'aggiunta della categoria', 'error');
+        console.error('Error creating category:', error);
+        showNotification('Error creating category', 'error');
     }
 }
 

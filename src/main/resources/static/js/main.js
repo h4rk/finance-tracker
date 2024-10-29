@@ -2,11 +2,11 @@ import { loadData } from './dataManager.js';
 import { setupEventListeners, loadDashboardData, loadCategories, loadTransactions } from './uiManager.js';
 import { updateTrendChart } from './chartManager.js';
 import { showNotification } from './utils.js';
-import { initializeBudgetModal } from './budgetManager.js';
+import { initializeBudgetModal, handleNewBudget, loadCategoriesForBudget } from './budgetManager.js';
 import { initializeFlatpickr } from './dateManager.js';
-
-import { testCreateMovement } from './api.js';
-window.testCreateMovement = testCreateMovement;
+import { fetchCategories, fetchTransactions, createCategory } from './api.js';
+import { handleNewTransaction, updateTransactionList } from './transactionManager.js';
+import { handleNewCategory } from './categoryManager.js';
 
 // Global app data object
 let appData = {
@@ -16,67 +16,139 @@ let appData = {
     monthlySummary: { income: 0, expenses: 0, balance: 0 }
 };
 
-// Event listener for DOMContentLoaded
-document.addEventListener('DOMContentLoaded', function() {
-    setTimeout(async function() {
-        try {
-            console.log('Starting app initialization');
-            await loadData(appData);
-
-            console.log('Initializing Flatpickr');
-            initializeFlatpickr();
-
-            console.log('Setting up event listeners');
-            setupEventListeners(appData);
-            
-            console.log('Loading dashboard data');
-            loadDashboardData(appData);
-            
-            console.log('Loading categories');
-            loadCategories(appData);
-            
-            console.log('Loading transactions');
-            loadTransactions(appData);
-
-            console.log('Updating trend chart');
-            updateTrendChart(appData);
-
-            console.log('App initialization completed successfully');
-            showNotification('Applicazione inizializzata con successo', 'success');
-        } catch (error) {
-            console.error('Error initializing app:', error);
-            console.error('Error stack:', error.stack);
-            if (error.message.includes('Bad Request')) {
-                showNotification('There was an issue with the data request. Please try again later or contact support.', 'error');
-            } else {
-                showNotification('An unexpected error occurred. Please try again later.', 'error');
-            }
-        }
-    }, 100); // Small delay to ensure DOM is ready
-});
-
-// Export appData for use in other modules if needed
-export { appData };
-
-// Add these functions to your existing JavaScript
-
+// Funzione per gestire il setup delle modali
 function setupModals() {
-    // Category Modal
-    const categoryModal = document.getElementById('categoryModal');
-    const addCategoryBtn = document.getElementById('addCategoryBtn');
-    const closeCategoryModal = document.getElementById('closeCategoryModal');
+    const modals = {
+        transaction: {
+            modalId: 'transactionModal',
+            openBtn: 'addTransactionBtn',
+            closeBtn: 'closeTransactionModal',
+            form: 'newTransactionForm',
+            onOpen: async () => {
+                await initializeFlatpickr();
+                await loadCategoriesForTransaction();
+            },
+            onSubmit: handleNewTransaction
+        },
+        category: {
+            modalId: 'categoryModal',
+            openBtn: 'addCategoryBtn',
+            closeBtn: 'closeCategoryModal',
+            form: 'newCategoryForm',
+            onSubmit: handleNewCategory
+        },
+        budget: {
+            modalId: 'budgetModal',
+            openBtn: 'addBudgetBtn',
+            closeBtn: 'closeBudgetModal',
+            form: 'newBudgetForm',
+            onOpen: loadCategoriesForBudget,
+            onSubmit: handleNewBudget
+        }
+    };
 
-    addCategoryBtn.addEventListener('click', () => categoryModal.classList.remove('hidden'));
-    closeCategoryModal.addEventListener('click', () => categoryModal.classList.add('hidden'));
+    Object.values(modals).forEach(modal => {
+        const modalElement = document.getElementById(modal.modalId);
+        const openButton = document.getElementById(modal.openBtn);
+        const closeButton = document.getElementById(modal.closeBtn);
+        const form = modal.form ? document.getElementById(modal.form) : null;
 
-    // Transaction Modal
-    const transactionModal = document.getElementById('transactionModal');
-    const addTransactionBtn = document.getElementById('addTransactionBtn');
-    const closeTransactionModal = document.getElementById('closeTransactionModal');
+        if (!modalElement || !openButton) {
+            console.warn(`Modal setup incomplete for ${modal.modalId}`);
+            return;
+        }
 
-    addTransactionBtn.addEventListener('click', () => transactionModal.classList.remove('hidden'));
-    closeTransactionModal.addEventListener('click', () => transactionModal.classList.add('hidden'));
+        // Setup apertura modale
+        openButton.addEventListener('click', async () => {
+            console.log(`Opening modal: ${modal.modalId}`);
+            modalElement.classList.remove('hidden');
+            if (modal.onOpen) await modal.onOpen();
+        });
+
+        // Setup chiusura modale
+        if (closeButton) {
+            closeButton.addEventListener('click', () => {
+                modalElement.classList.add('hidden');
+                if (form) form.reset();
+            });
+        }
+
+        // Setup form submit
+        if (form) {
+            form.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                try {
+                    await modal.onSubmit(e);
+                    modalElement.classList.add('hidden');
+                    form.reset();
+                    // Aggiorna i dati dopo il submit
+                    await Promise.all([
+                        loadDashboardData(),
+                        updateTransactionList(),
+                        updateTrendChart()
+                    ]);
+                } catch (error) {
+                    console.error('Form submission error:', error);
+                    showNotification('Error submitting form', 'error');
+                }
+            });
+        }
+    });
 }
 
-// Call this function when the page loads
-document.addEventListener('DOMContentLoaded', setupModals);
+// Gestione switch tipo transazione
+function setupTransactionTypeSwitch() {
+    const typeSwitch = document.getElementById('transactionType');
+    const submitButton = document.getElementById('submitTransaction');
+    const amountLabel = document.querySelector('label[for="amount"]');
+
+    if (typeSwitch && submitButton && amountLabel) {
+        typeSwitch.addEventListener('change', () => {
+            const isIncome = typeSwitch.checked;
+            submitButton.className = `px-4 py-2 ${isIncome ? 'bg-green-600 hover:bg-green-700' : 'bg-red-600 hover:bg-red-700'} text-white rounded-md transition duration-300`;
+            amountLabel.textContent = `Amount (${isIncome ? 'Income' : 'Expense'})`;
+        });
+    }
+}
+
+// Caricamento categorie per transazioni
+async function loadCategoriesForTransaction() {
+    try {
+        const categories = await fetchCategories();
+        const categorySelect = document.getElementById('category');
+        if (!categorySelect) return;
+
+        categorySelect.innerHTML = categories
+            .map(category => `<option value="${category.id}">${category.name}</option>`)
+            .join('');
+    } catch (error) {
+        console.error('Error loading categories:', error);
+        showNotification('Error loading categories', 'error');
+    }
+}
+
+// Inizializzazione dell'app
+document.addEventListener('DOMContentLoaded', async function() {
+    try {
+        console.log('Starting app initialization');
+        
+        // Setup UI iniziale
+        setupModals();
+        
+        // Caricamento dati iniziali
+        await Promise.all([
+            loadDashboardData(),
+            updateTransactionList(),
+            updateTrendChart(),
+            loadCategories()
+        ]);
+
+        console.log('App initialization completed');
+    } catch (error) {
+        console.error('Error during app initialization:', error);
+        showNotification('Error initializing app', 'error');
+    }
+});
+
+export { appData };
+

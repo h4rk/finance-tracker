@@ -1,14 +1,13 @@
 import { 
     fetchTransactions, 
     fetchCategories, 
-    createTransaction, 
-    createCategory, 
     deleteCategory, 
     deleteTransaction 
 } from './api.js';
 import { updateTrendChart, updateBudgetProgress } from './chartManager.js';
 import { formatCurrency, showNotification } from './utils.js';
 import { formatDate } from './dateManager.js';
+import { handleNewTransaction } from './transactionManager.js';
 
 // Dashboard Loading
 async function loadDashboardData() {
@@ -73,7 +72,7 @@ async function loadTransactions(filters = {}) {
 function setupEventListeners() {
     const elements = [
         { id: 'newTransactionForm', event: 'submit', handler: handleNewTransaction },
-        { id: 'newCategoryForm', event: 'submit', handler: handleNewCategory },
+        // { id: 'newCategoryForm', event: 'submit', handler: handleNewCategory }, fra mi sa che non serve e mi duplichi le categorie
         { id: 'transactionSearch', event: 'input', handler: handleTransactionFilter },
         { id: 'transactionFilter', event: 'change', handler: handleTransactionFilter },
         { id: 'trendPeriod', event: 'change', handler: () => loadDashboardData() },
@@ -117,55 +116,6 @@ function setupDelegatedEvents() {
                 await showTransactionDetails(transactionId);
             }
         });
-    }
-}
-
-async function handleNewTransaction(e) {
-    e.preventDefault();
-    const form = e.target;
-    const amount = parseFloat(form.amount.value);
-    const isIncome = form.transactionType.checked;
-
-    const transactionData = {
-        description: form.description.value,
-        amount: isIncome ? Math.abs(amount) : -Math.abs(amount),
-        date: form.date.value,
-        catIds: Array.from(form.category.selectedOptions)
-            .map(option => parseInt(option.value, 10))
-            .filter(id => !isNaN(id))
-    };
-
-    try {
-        await createTransaction(transactionData);
-        await Promise.all([
-            loadDashboardData(),
-            loadTransactions()
-        ]);
-        form.reset();
-        showNotification('Transazione aggiunta con successo', 'success');
-    } catch (error) {
-        console.error('Error adding transaction:', error);
-        showNotification('Errore nell\'aggiunta della transazione', 'error');
-    }
-}
-
-async function handleNewCategory(e) {
-    e.preventDefault();
-    const form = e.target;
-    const categoryData = {
-        name: form.newCategoryName.value,
-        description: form.newCategoryDescription?.value || '',
-        type: parseInt(form.newCategoryType.value)
-    };
-
-    try {
-        await createCategory(categoryData);
-        await loadCategories();
-        form.reset();
-        showNotification('Categoria aggiunta con successo', 'success');
-    } catch (error) {
-        console.error('Error adding category:', error);
-        showNotification('Errore nell\'aggiunta della categoria', 'error');
     }
 }
 
@@ -341,6 +291,5 @@ export {
     loadDashboardData,
     loadCategories,
     loadTransactions,
-    setupEventListeners,
-    handleNewTransaction
+    setupEventListeners
 };

@@ -35,16 +35,6 @@ public class MovsService {
 	@Autowired
 	private UserService userService;
 
-    public List<Mov> getMovs() {
-        log.info("Executing getMovs()...");
-		try {
-			return movsRepository.getMovs(userService.getCurrentUserId());
-		} catch (Exception e) {
-			log.error("Error executing getMovs(): [{}]", e.getMessage());
-			throw new GetMovsException("Error while getting the movements.", e);
-		}
-    }
-
 	public Mov getMovById(long id) {
         log.info("Executing getMovById() with id: [{}]...", id);
 		try {
@@ -106,30 +96,32 @@ public class MovsService {
 	}
 
 	@Transactional(rollbackFor = Exception.class)
-	public void putMovs(long id, MovWithCat movWithCat) {
-		log.info("Executing putMovs() with id: [{}] and mov: [{}]...", id, movWithCat);
+	public MovWithCat putMovs(long id, MovWithCat curr) {
+		log.info("Executing putMovs() with id: [{}] and mov: [{}]...", id, curr);
 		//Check if the movement exists for the user
-		MovWithCat mov = movsRepository.getMovWithCatById(id, userService.getCurrentUserId());
-		if (mov == null) {
+		MovWithCat old = movsRepository.getMovWithCatById(id, userService.getCurrentUserId());
+		if (old == null) {
 			throw new PutMovException("Movement not found.", new RuntimeException("Movement not found."));
 		}
 		
 		//Prevent using category ids that don't exist/belong to the current user
 		Set<Long> valid_cats_ids = new HashSet<>(catsService.getCats().stream().map(Cat::getId).collect(Collectors.toList()));
-		for (Long cat_id : movWithCat.getCatIds()) {
+		for (Long cat_id : curr.getCatIds()) {
 			if (!valid_cats_ids.contains(cat_id)) {
 				throw new PostMovException("Invalid category id: ["+cat_id+"]", 
 					new RuntimeException("Category not found for the current user."));
 			}
 		}
 		//If there are differences in the categories, delete old and post new
-		if(!new HashSet<>(movWithCat.getCatIds()).equals(new HashSet<>(mov.getCatIds()))) {
+		if(!new HashSet<>(curr.getCatIds()).equals(new HashSet<>(old.getCatIds()))) {
 			movCatService.deleteAllMovCats(id);
-			movCatService.postMovCat(id, movWithCat.getCatIds());
+			movCatService.postMovCat(id, curr.getCatIds());
 		}
 		//Update the movement
-		movsRepository.putMovs(id, new Mov(movWithCat.getDescription(),
-											movWithCat.getAmount(), movWithCat.getDate(),
-											movWithCat.isIncome()), userService.getCurrentUserId());
+		movsRepository.putMovs(id, new Mov(curr.getDescription(),
+			curr.getAmount(), curr.getDate(),
+			curr.isIncome()), userService.getCurrentUserId());
+
+		return movsRepository.getMovWithCatById(id, userService.getCurrentUserId());
 	}
 }

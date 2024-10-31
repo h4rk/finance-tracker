@@ -56,11 +56,13 @@ public class MovsService {
 	}
 
 	@Transactional(rollbackFor = Exception.class)
-	public void postMovs(MovWithCat movWithCat) {
+	public MovWithCat postMovs(MovWithCat movWithCat) {
         log.info("Executing postMovs() with mov: [{}]...", movWithCat);
 		try {
 			//Prevent using category ids that don't exist/belong to the current user
 			Set<Long> valid_cats_ids = new HashSet<>(catsService.getCats().stream().map(Cat::getId).collect(Collectors.toList()));
+			log.debug("Valid categories ids: [{}]", valid_cats_ids);
+			log.debug("Mov categories ids: [{}]", movWithCat.getCatIds());
 			for (Long cat_id : movWithCat.getCatIds()) {
 				if (!valid_cats_ids.contains(cat_id)) {
 					throw new PostMovException("Invalid category id: ["+cat_id+"]", 
@@ -73,6 +75,10 @@ public class MovsService {
 																 movWithCat.isIncome()), userService.getCurrentUserId());
 			//Post the categories for the movement
 			movCatService.postMovCat(new_id, movWithCat.getCatIds());
+			//Set the new id
+			movWithCat.setId(new_id);
+
+			return movWithCat;
 		} catch (Exception e) {
 			log.error("Error executing postMovs(): [{}]", e.getMessage());
 			throw new PostMovException("Error while posting the movement.", e);

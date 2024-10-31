@@ -8,6 +8,8 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/themes/airbnb.css">
     <link rel="stylesheet" th:href="@{/css/style.css}">
     <link rel="stylesheet" th:href="@{/css/nav.css}">
     <style>
@@ -31,7 +33,9 @@
 </head>
 <body th:class="${bodyClass} + ' font-inter bg-gray-100'">
     <div class="flex flex-col min-h-screen">
-        <th:block th:replace="~{layout/nav :: nav}"></th:block>
+        <th:block th:if="${!#strings.contains(title, 'Login') && !#strings.contains(title, 'Registrazione')}">
+            <th:block th:replace="~{layout/nav :: nav}"></th:block>
+        </th:block>
         <main class="flex-grow container mx-auto px-4 sm:px-6 lg:px-8 py-8">
             <th:block th:replace="${content}"></th:block>
         </main>

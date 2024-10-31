@@ -186,3 +186,8 @@ button:hover {
 html {
     scroll-behavior: smooth;
 }
+
+
+.container {
+    max-width: 95vw !important;
+}

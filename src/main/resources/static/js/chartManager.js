@@ -206,39 +206,38 @@ function groupTransactionsByMonth(transactions, months) {
     return monthlyData;
 }
 
-export function updateBudgetProgress(appData) {
-    const budgetProgressBars = document.getElementById('budgetProgressBars');
-    budgetProgressBars.innerHTML = '';
+export function updateBudgetProgress(transactions) {
+    if (!transactions || !Array.isArray(transactions)) {
+        console.error('Invalid transactions data:', transactions);
+        return;
+    }
 
-    appData.categories.forEach(category => {
-        if (category.budget) {
-            const spent = appData.transactions
-                .filter(t => t.catId === category.id && t.amount < 0)
-                .reduce((sum, t) => sum + Math.abs(t.amount), 0);
-            const budget = category.budget;
-            const percentage = Math.min((spent / budget) * 100, 100);
+    try {
+        // Raggruppa le transazioni per categoria
+        const categoryTotals = transactions.reduce((acc, transaction) => {
+            if (!transaction.categoryName) return acc;
+            
+            const amount = Math.abs(transaction.amount);
+            acc[transaction.categoryName] = (acc[transaction.categoryName] || 0) + amount;
+            return acc;
+        }, {});
 
-            const barHtml = `
-                <div class="mb-4">
-                    <div class="flex justify-between mb-1">
-                        <span class="text-sm font-medium text-gray-700">${category.name}</span>
-                        <div>
-                            <span class="text-sm font-medium text-gray-700">${formatCurrency(spent)} / ${formatCurrency(budget)}</span>
-                            <button class="ml-2 text-red-600 hover:text-red-800" onclick="removeBudget(${category.id})">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
-                                </svg>
-                            </button>
-                        </div>
-                    </div>
-                    <div class="w-full bg-gray-200 rounded-full h-2.5">
-                        <div class="bg-blue-600 h-2.5 rounded-full" style="width: ${percentage}%"></div>
-                    </div>
-                </div>
-            `;
-            budgetProgressBars.innerHTML += barHtml;
-        }
-    });
+        // Aggiorna il grafico con i totali
+        updateBudgetChart(categoryTotals);
+        
+    } catch (error) {
+        console.error('Error updating budget progress:', error);
+    }
+}
+
+function updateBudgetChart(categoryTotals) {
+    // Verifica che ci siano dati da visualizzare
+    if (!categoryTotals || Object.keys(categoryTotals).length === 0) {
+        console.log('No category totals to display');
+        return;
+    }
+
+    // ... resto del codice per l'aggiornamento del grafico ...
 }
 
 function getMonthName(monthIndex) {

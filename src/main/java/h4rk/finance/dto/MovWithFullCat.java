@@ -1,8 +1,6 @@
 package h4rk.finance.dto;
 
 import java.sql.Date;
-import java.util.HashMap;
-import java.util.Map;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;

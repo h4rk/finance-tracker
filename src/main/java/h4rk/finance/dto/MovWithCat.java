@@ -4,19 +4,15 @@ import java.sql.Date;
 import java.util.List;
 
 import lombok.AllArgsConstructor;
-import lombok.Getter;
+import lombok.Data;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
-import lombok.ToString;
 
-@Getter
-@Setter
 @NoArgsConstructor
 @AllArgsConstructor
-@ToString
+@Data
 public class MovWithCat {
 
-	private long id;
+	private Long id;
 	private String description;
 	private double amount;
 	private Date date;

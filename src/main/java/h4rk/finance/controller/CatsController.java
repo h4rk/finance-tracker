@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -39,6 +40,12 @@ public class CatsController {
         return new ResponseEntity<Cat>(c, HttpStatus.CREATED);
     }
 
+	@PutMapping("/cats/{id}")
+	public ResponseEntity<?> putCat(@PathVariable Long id, @RequestBody Cat cat) {
+		cService.putCat(id, cat);
+		return ResponseEntity.ok().build();
+	}
+
     @Operation(summary = "Delete a category", description = "Deletes a category by its ID")
     @DeleteMapping("/cats/{id}")
     public ResponseEntity<?> deleteCategories(@PathVariable("id") long id) {
@@ -52,4 +59,11 @@ public class CatsController {
         List<CatType> catTypes = cService.getCatTypes();
         return ResponseEntity.ok(catTypes);
     }
+
+	@Operation(summary = "Get a category by ID", description = "Retrieves a category by its ID")
+	@GetMapping("/cats/{id}")
+	public ResponseEntity<Cat> getCatById(@PathVariable Long id) {
+		Cat c = cService.getCatById(id);
+		return ResponseEntity.ok(c);
+	}
 }

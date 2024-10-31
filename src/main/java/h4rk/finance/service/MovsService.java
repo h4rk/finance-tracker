@@ -5,7 +5,6 @@ import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import java.math.BigInteger;
 
 import h4rk.finance.dto.Cat;
 import h4rk.finance.dto.Mov;
@@ -36,16 +35,6 @@ public class MovsService {
 	@Autowired
 	private UserService userService;
 
-    public List<Mov> getMovs() {
-        log.info("Executing getMovs()...");
-		try {
-			return movsRepository.getMovs(userService.getCurrentUserId());
-		} catch (Exception e) {
-			log.error("Error executing getMovs(): [{}]", e.getMessage());
-			throw new GetMovsException("Error while getting the movements.", e);
-		}
-    }
-
 	public Mov getMovById(long id) {
         log.info("Executing getMovById() with id: [{}]...", id);
 		try {
@@ -57,11 +46,13 @@ public class MovsService {
 	}
 
 	@Transactional(rollbackFor = Exception.class)
-	public void postMovs(MovWithCat movWithCat) {
+	public MovWithCat postMovs(MovWithCat movWithCat) {
         log.info("Executing postMovs() with mov: [{}]...", movWithCat);
 		try {
 			//Prevent using category ids that don't exist/belong to the current user
 			Set<Long> valid_cats_ids = new HashSet<>(catsService.getCats().stream().map(Cat::getId).collect(Collectors.toList()));
+			log.debug("Valid categories ids: [{}]", valid_cats_ids);
+			log.debug("Mov categories ids: [{}]", movWithCat.getCatIds());
 			for (Long cat_id : movWithCat.getCatIds()) {
 				if (!valid_cats_ids.contains(cat_id)) {
 					throw new PostMovException("Invalid category id: ["+cat_id+"]", 
@@ -74,6 +65,10 @@ public class MovsService {
 																 movWithCat.isIncome()), userService.getCurrentUserId());
 			//Post the categories for the movement
 			movCatService.postMovCat(new_id, movWithCat.getCatIds());
+			//Set the new id
+			movWithCat.setId(new_id);
+
+			return movWithCat;
 		} catch (Exception e) {
 			log.error("Error executing postMovs(): [{}]", e.getMessage());
 			throw new PostMovException("Error while posting the movement.", e);
@@ -101,31 +96,32 @@ public class MovsService {
 	}
 
 	@Transactional(rollbackFor = Exception.class)
-	public void putMovs(long id, MovWithCat movWithCat) {
-		log.info("Executing putMovs() with id: [{}] and mov: [{}]...", id, movWithCat);
+	public MovWithCat putMovs(long id, MovWithCat curr) {
+		log.info("Executing putMovs() with id: [{}] and mov: [{}]...", id, curr);
 		//Check if the movement exists for the user
-		MovWithCat mov = movsRepository.getMovWithCatById(id, userService.getCurrentUserId());
-		if (mov == null) {
+		MovWithCat old = movsRepository.getMovWithCatById(id, userService.getCurrentUserId());
+		if (old == null) {
 			throw new PutMovException("Movement not found.", new RuntimeException("Movement not found."));
 		}
 		
 		//Prevent using category ids that don't exist/belong to the current user
 		Set<Long> valid_cats_ids = new HashSet<>(catsService.getCats().stream().map(Cat::getId).collect(Collectors.toList()));
-		for (Long cat_id : movWithCat.getCatIds()) {
+		for (Long cat_id : curr.getCatIds()) {
 			if (!valid_cats_ids.contains(cat_id)) {
 				throw new PostMovException("Invalid category id: ["+cat_id+"]", 
 					new RuntimeException("Category not found for the current user."));
 			}
 		}
-
-		if(!new HashSet<>(movWithCat.getCatIds()).equals(new HashSet<>(mov.getCatIds()))) {
+		//If there are differences in the categories, delete old and post new
+		if(!new HashSet<>(curr.getCatIds()).equals(new HashSet<>(old.getCatIds()))) {
 			movCatService.deleteAllMovCats(id);
-			movCatService.postMovCat(id, movWithCat.getCatIds());
+			movCatService.postMovCat(id, curr.getCatIds());
 		}
-		
 		//Update the movement
-		movsRepository.putMovs(id, new Mov(movWithCat.getDescription(),
-											movWithCat.getAmount(), movWithCat.getDate(),
-											movWithCat.isIncome()), userService.getCurrentUserId());
+		movsRepository.putMovs(id, new Mov(curr.getDescription(),
+			curr.getAmount(), curr.getDate(),
+			curr.isIncome()), userService.getCurrentUserId());
+
+		return movsRepository.getMovWithCatById(id, userService.getCurrentUserId());
 	}
 }

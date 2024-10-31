@@ -9,7 +9,6 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
-import java.math.BigInteger;
 import java.sql.Types;
 import h4rk.finance.dto.Mov;
 import h4rk.finance.dto.MovWithCat;

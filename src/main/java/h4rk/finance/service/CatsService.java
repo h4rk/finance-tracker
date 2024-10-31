@@ -56,6 +56,14 @@ public class CatsService {
         }
     }
 
+	public void putCat(long id, Cat cat) {
+		Cat old = catsRepository.getCatById(id, userService.getCurrentUserId());
+		if(old == null){
+			throw new IllegalArgumentException("Category not found");
+		}
+		catsRepository.putCat(cat, id, userService.getCurrentUserId());
+	}
+
     public void deleteCat(long id) {
         log.info("Executing deleteCat() with id: [{}]...", id);
         try {

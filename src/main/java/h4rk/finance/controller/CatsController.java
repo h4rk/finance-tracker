@@ -60,7 +60,8 @@ public class CatsController {
         return ResponseEntity.ok(catTypes);
     }
 
-	@GetMapping
+	@Operation(summary = "Get a category by ID", description = "Retrieves a category by its ID")
+	@GetMapping("/cats/{id}")
 	public ResponseEntity<Cat> getCatById(@PathVariable Long id) {
 		Cat c = cService.getCatById(id);
 		return ResponseEntity.ok(c);

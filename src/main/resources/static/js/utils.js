@@ -4,8 +4,21 @@
  * @returns {string} The formatted currency string
  */
 export function formatCurrency(amount) {
-  const absAmount = Math.abs(amount);
-  return amount < 0 ? `-€${absAmount.toFixed(2)}` : `€${absAmount.toFixed(2)}`;
+    try {
+        if (typeof amount !== 'number') {
+            amount = parseFloat(amount);
+        }
+        
+        if (isNaN(amount)) {
+            throw new Error('Invalid amount');
+        }
+
+        const absAmount = Math.abs(amount);
+        return amount < 0 ? `-€${absAmount.toFixed(2)}` : `€${absAmount.toFixed(2)}`;
+    } catch (error) {
+        console.error('Error formatting currency:', error);
+        return '€0.00';
+    }
 }
 
 /**
@@ -24,7 +37,13 @@ export function getMonthName(monthIndex) {
 * @returns {string} A random color in hexadecimal format
 */
 export function getRandomColor() {
-  return '#' + Math.floor(Math.random()*16777215).toString(16);
+    try {
+        const color = Math.floor(Math.random()*16777215).toString(16);
+        return '#' + '0'.repeat(6 - color.length) + color;
+    } catch (error) {
+        console.error('Error generating random color:', error);
+        return '#000000';
+    }
 }
 
 /**
@@ -43,16 +62,16 @@ export function formatDate(dateString) {
 * @param {number} wait - The number of milliseconds to wait
 * @returns {Function} The debounced function
 */
-export function debounce(func, wait) {
-  let timeout;
-  return function executedFunction(...args) {
-      const later = () => {
-          clearTimeout(timeout);
-          func(...args);
-      };
-      clearTimeout(timeout);
-      timeout = setTimeout(later, wait);
-  };
+export function debounce(func, wait = 300) {
+    let timeout;
+    return function executedFunction(...args) {
+        const later = () => {
+            clearTimeout(timeout);
+            func(...args);
+        };
+        clearTimeout(timeout);
+        timeout = setTimeout(later, wait);
+    };
 }
 
 /**
@@ -61,8 +80,14 @@ export function debounce(func, wait) {
 * @returns {boolean} True if the email is valid, false otherwise
 */
 export function validateEmail(email) {
-  const re = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
-  return re.test(String(email).toLowerCase());
+    try {
+        if (!email || typeof email !== 'string') return false;
+        const re = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+        return re.test(email.toLowerCase());
+    } catch (error) {
+        console.error('Error validating email:', error);
+        return false;
+    }
 }
 
 /**
@@ -71,24 +96,59 @@ export function validateEmail(email) {
 * @param {number} maxLength - The maximum length of the string
 * @returns {string} The truncated string
 */
-export function truncateString(str, maxLength) {
-  if (str.length <= maxLength) return str;
-  return str.slice(0, maxLength - 3) + '...';
+export function truncateString(str, maxLength = 50) {
+    try {
+        if (!str || typeof str !== 'string') return '';
+        if (str.length <= maxLength) return str;
+        return str.slice(0, maxLength - 3) + '...';
+    } catch (error) {
+        console.error('Error truncating string:', error);
+        return '';
+    }
 }
-
-// Add other utility functions as needed
 
 /**
  * Displays a notification message to the user
  * @param {string} message - The message to display
  * @param {string} type - The type of notification ('success' or 'error')
  */
-export function showNotification(message, type) {
-    const notification = document.createElement('div');
-    notification.textContent = message;
-    notification.className = `fixed bottom-4 right-4 p-4 rounded-lg text-white ${type === 'success' ? 'bg-green-500' : 'bg-red-500'}`;
-    document.body.appendChild(notification);
-    setTimeout(() => {
-        document.body.removeChild(notification);
-    }, 3000);
+export function showNotification(message, type = 'info') {
+    try {
+        const notification = document.createElement('div');
+        notification.textContent = message;
+        notification.className = `
+            fixed bottom-4 right-4 p-4 rounded-lg text-white
+            ${getNotificationColor(type)}
+            transform transition-transform duration-300 ease-in-out
+        `;
+        
+        document.body.appendChild(notification);
+        
+        // Animazione entrata
+        requestAnimationFrame(() => {
+            notification.style.transform = 'translateY(0)';
+        });
+
+        // Rimuovi dopo 3 secondi con animazione
+        setTimeout(() => {
+            notification.style.transform = 'translateY(100%)';
+            notification.addEventListener('transitionend', () => {
+                document.body.removeChild(notification);
+            });
+        }, 3000);
+    } catch (error) {
+        console.error('Error showing notification:', error);
+    }
 }
+
+function getNotificationColor(type) {
+    const colors = {
+        success: 'bg-green-500',
+        error: 'bg-red-500',
+        warning: 'bg-yellow-500',
+        info: 'bg-blue-500'
+    };
+    return colors[type] || colors.info;
+}
+
+// Add other utility functions as needed

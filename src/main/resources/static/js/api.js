@@ -3,6 +3,7 @@ import { API_BASE_URL } from './config.js';
 // Configurazione base per le chiamate fetch
 const defaultHeaders = {
     'Content-Type': 'application/json',
+    'X-CSRF-TOKEN': document.querySelector('meta[name="_csrf"]')?.getAttribute('content')
 };
 
 // Funzione helper per le chiamate API
@@ -11,12 +12,22 @@ async function apiCall(endpoint, options = {}) {
         const url = `${API_BASE_URL}${endpoint}`;
         const response = await fetch(url, {
             headers: defaultHeaders,
+            credentials: 'include',
             ...options,
         });
 
         if (!response.ok) {
             const errorText = await response.text();
-            throw new Error(`HTTP error! status: ${response.status}, message: ${errorText}`);
+            let error;
+            try {
+                const errorJson = JSON.parse(errorText);
+                error = new Error(errorJson.message || 'Unknown error');
+                error.details = errorJson;
+            } catch {
+                error = new Error(errorText || `HTTP error! status: ${response.status}`);
+            }
+            error.status = response.status;
+            throw error;
         }
 
         // Gestione risposta vuota
@@ -52,10 +63,25 @@ export async function createTransaction(transactionData) {
 }
 
 export async function updateTransaction(transactionId, transactionData) {
-    return apiCall(`/movs/${transactionId}`, {
-        method: 'PUT',
-        body: JSON.stringify(transactionData)
-    });
+    if (!transactionId) {
+        throw new Error('Transaction ID is required');
+    }
+
+    console.log('Making PUT request to:', `/movs/${transactionId}`);
+    console.log('With data:', transactionData);
+
+    try {
+        const response = await apiCall(`/movs/${transactionId}`, {
+            method: 'PUT',
+            body: JSON.stringify(transactionData)
+        });
+        
+        console.log('Update response:', response);
+        return response;
+    } catch (error) {
+        console.error('Update transaction error:', error);
+        throw error;
+    }
 }
 
 export async function deleteTransaction(transactionId) {
@@ -89,7 +115,10 @@ export async function createCategory(categoryData) {
 export async function updateCategory(categoryId, categoryData) {
     return apiCall(`/cats/${categoryId}`, {
         method: 'PUT',
-        body: JSON.stringify(categoryData)
+        body: JSON.stringify({
+            name: categoryData.name,
+            type: categoryData.type
+        })
     });
 }
 
@@ -122,8 +151,8 @@ export async function fetchMonthlyAnalytics() {
     return apiCall('/analytics/monthly');
 }
 
-export async function fetchBudgetSummary() {
-    return apiCall('/analytics/budget-summary');
+export async function fetchYearlyAnalytics() {
+    return apiCall('/analytics/yearly');
 }
 
 export async function fetchTransactionsByCategory(categoryId) {
@@ -152,11 +181,13 @@ export async function authenticatedFetch(url, options = {}) {
 // DEBUG/TEST Functions
 export async function testCreateMovement() {
     const testData = {
-        date: "2023-05-15",
-        description: "Test Movement",
-        amount: 100.00,
-        isIncome: true,
-        catIds: [10]
+        mov: {
+            date: "2023-05-15",
+            description: "Test Movement",
+            amount: 100.00,
+            isIncome: true
+        },
+        catId: 10
     };
     
     try {

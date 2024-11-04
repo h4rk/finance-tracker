@@ -5,7 +5,7 @@ import { showNotification } from './utils.js';
 import { initializeBudgetModal, handleNewBudget, loadCategoriesForBudget } from './budgetManager.js';
 import { initializeFlatpickr } from './dateManager.js';
 import { fetchCategories, fetchTransactions, createCategory } from './api.js';
-import { handleNewTransaction, updateTransactionList } from './transactionManager.js';
+import { handleNewTransaction, updateTransactionList, handleEditTransaction } from './transactionManager.js';
 import { handleNewCategory } from './categoryManager.js';
 
 // Global app data object
@@ -149,6 +149,45 @@ document.addEventListener('DOMContentLoaded', async function() {
         showNotification('Error initializing app', 'error');
     }
 });
+
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('Initializing event listeners...');
+    
+    // Edit Transaction Form
+    const editTransactionForm = document.getElementById('editTransactionForm');
+    if (editTransactionForm) {
+        console.log('Found edit transaction form, attaching submit handler');
+        editTransactionForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            console.log('Edit form submit intercepted');
+            handleEditTransaction(e);
+        });
+    } else {
+        console.error('Edit transaction form not found');
+    }
+    
+    // ... resto del codice
+});
+
+function setupModalBehavior() {
+    // Chiudi modale con ESC
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+            document.querySelectorAll('.modal').forEach(modal => {
+                modal.classList.add('hidden');
+            });
+        }
+    });
+
+    // Chiudi modale cliccando fuori
+    document.querySelectorAll('.modal').forEach(modal => {
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                modal.classList.add('hidden');
+            }
+        });
+    });
+}
 
 export { appData };
 

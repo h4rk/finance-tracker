@@ -1,4 +1,4 @@
-import { fetchCategories, fetchTransactions, fetchCatTypes, createTransaction, createCategory, deleteCategory, deleteTransaction } from './api.js';
+import { fetchCategories, fetchTransactions, fetchCatTypes, createTransaction, createCategory, deleteCategory, deleteTransaction, fetchMonthlyAnalytics } from './api.js';
 import { formatCurrency } from './utils.js';
 
 // Funzioni principali semplificate
@@ -26,14 +26,14 @@ export async function loadData() {
 
 export async function updateMonthlySummary() {
     try {
-        const monthlyData = await fetch('/analytics/monthly').then(r => r.json());
+        const monthlyData = await fetchMonthlyAnalytics();
         const { monthlyIncome: income, monthlyExpense: expenses } = monthlyData;
         const delta = income - expenses;
 
         updateSummaryUI({ income, expenses, delta });
         return { income, expenses, delta };
     } catch (error) {
-        console.error('Error fetching monthly summary:', error);
+        console.error('Error updating monthly summary:', error);
         throw error;
     }
 }

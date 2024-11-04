@@ -56,7 +56,7 @@
                         </div>
                     </div>
 
-                    <!-- Categories e Budget in una riga -->
+                    <!-- Categories Section -->
                     <div class="col-span-12 lg:col-span-3 h-fit">
                         <div class="bg-white rounded-lg shadow-md p-4">
                             <div class="flex justify-between items-center mb-3">
@@ -195,6 +195,26 @@
             .slider.round:before {
                 border-radius: 50%;
             }
+
+            /* Aggiungi questi stili alla sezione degli stili esistente */
+            select[multiple] {
+                overflow-y: auto;
+                scrollbar-width: thin;
+            }
+            
+            select[multiple] option {
+                padding: 0.5rem;
+                border-bottom: 1px solid #e5e7eb;
+            }
+            
+            select[multiple] option:hover {
+                background-color: #f3f4f6;
+            }
+            
+            select[multiple] option:checked {
+                background-color: #e5e7eb;
+                color: #1f2937;
+            }
         </style>
 
                 <!-- Transaction Modal -->
@@ -220,7 +240,7 @@
                     </div>
                     <div>
                         <label for="category" class="block text-sm font-medium text-gray-700">Categories</label>
-                        <select id="category" name="category" multiple required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                        <select id="category" name="category" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500">
                             <option value="">Select categories</option>
                         </select>
                     </div>
@@ -291,6 +311,90 @@
                 </form>
             </div>
         </div>
+
+        <!-- Aggiungere stati di caricamento -->
+        <div id="loadingOverlay" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div class="animate-spin rounded-full h-32 w-32 border-t-2 border-b-2 border-white"></div>
+        </div>
+
+        <!-- Aggiungere Modal per Edit Transaction -->
+        <div id="editTransactionModal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full">
+            <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+                <h3 class="text-lg font-semibold text-gray-900 mb-4">Edit Transaction</h3>
+                <form id="editTransactionForm" class="space-y-4">
+                    <input type="hidden" id="editTransactionId">
+                    <div>
+                        <label for="editAmount" class="block text-sm font-medium text-gray-700">Amount</label>
+                        <input type="number" id="editAmount" name="amount" step="0.01" required min="0" 
+                               class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                    </div>
+                    <div>
+                        <label for="editDescription" class="block text-sm font-medium text-gray-700">Description</label>
+                        <input type="text" id="editDescription" name="description" required 
+                               class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                    </div>
+                    <div>
+                        <label for="editCategory" class="block text-sm font-medium text-gray-700">Categories</label>
+                        <select id="editCategory" name="category" multiple required 
+                                class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 min-h-[100px]">
+                        </select>
+                        <p class="mt-1 text-sm text-gray-500">Hold Ctrl/Cmd to select multiple categories</p>
+                    </div>
+                    <div>
+                        <label for="editDate" class="block text-sm font-medium text-gray-700">Date</label>
+                        <input type="text" id="editDate" name="date" required 
+                               class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                    </div>
+                    <div class="flex justify-end space-x-2">
+                        <button type="button" id="closeEditTransactionModal" 
+                                class="px-4 py-2 bg-gray-300 text-gray-800 rounded-md hover:bg-gray-400">Cancel</button>
+                        <button type="submit" 
+                                class="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700">Update</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Aggiungere Modal per Edit Category -->
+        <div id="editCategoryModal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full">
+            <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+                <h3 class="text-lg font-semibold text-gray-900 mb-4">Edit Category</h3>
+                <form id="editCategoryForm" class="space-y-4">
+                    <input type="hidden" id="editCategoryId">
+                    <div>
+                        <label for="editCategoryName" class="block text-sm font-medium text-gray-700">Category Name</label>
+                        <input type="text" id="editCategoryName" name="name" required 
+                               class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                    </div>
+                    <div>
+                        <label for="editCategoryType" class="block text-sm font-medium text-gray-700">Category Type</label>
+                        <select id="editCategoryType" name="type" required 
+                                class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                            <option value="1">Expense</option>
+                            <option value="2">Income</option>
+                            <option value="3">Both</option>
+                        </select>
+                    </div>
+                    <div class="flex justify-end space-x-2">
+                        <button type="button" id="closeEditCategoryModal" 
+                                class="px-4 py-2 bg-gray-300 text-gray-800 rounded-md hover:bg-gray-400">Cancel</button>
+                        <button type="submit" 
+                                class="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700">Update</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Aggiungere un overlay di caricamento -->
+        <div id="loadingOverlay" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div class="bg-white p-4 rounded-lg shadow-lg">
+                <div class="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-indigo-500"></div>
+                <p class="mt-2 text-sm text-gray-600">Caricamento in corso...</p>
+            </div>
+        </div>
+
+        <!-- Aggiungere notifiche più dettagliate -->
+        <div id="notification" class="hidden fixed bottom-4 right-4 p-4 rounded-lg shadow-lg"></div>
     </th:block>
 
     <th:block th:fragment="extraScripts">

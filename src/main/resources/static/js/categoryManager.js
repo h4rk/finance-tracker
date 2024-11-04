@@ -1,4 +1,4 @@
-import { fetchCategories, createCategory, deleteCategory } from './api.js';
+import { fetchCategories, createCategory, deleteCategory, updateCategory, getCategoryDetails } from './api.js';
 import { showNotification } from './utils.js';
 import { loadCategories } from './uiManager.js';
 
@@ -112,6 +112,118 @@ export function updateCategoryTypeColors() {
         default: // Both or unselected
             submitButton.className = 'bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded';
     }
+}
+
+export async function handleEditCategory(e) {
+    e.preventDefault();
+    const form = e.target;
+    const categoryId = document.getElementById('editCategoryId').value;
+    
+    try {
+        const categoryData = {
+            name: form.name.value,
+            type: parseInt(form.type.value)
+        };
+
+        await updateCategory(categoryId, categoryData);
+        
+        // Aggiorna UI
+        await loadCategories();
+        hideEditCategoryModal();
+        showNotification('Category updated successfully', 'success');
+    } catch (error) {
+        console.error('Error updating category:', error);
+        showNotification('Error updating category', 'error');
+    }
+}
+
+export function hideEditCategoryModal() {
+    const modal = document.getElementById('editCategoryModal');
+    if (modal) {
+        modal.classList.add('hidden');
+        document.getElementById('editCategoryForm')?.reset();
+    }
+}
+
+export function showEditCategoryModal(category) {
+    console.log('Showing edit modal for category:', category);
+    const modal = document.getElementById('editCategoryModal');
+    if (!modal) {
+        console.error('Edit category modal not found');
+        return;
+    }
+
+    // Popola form
+    document.getElementById('editCategoryId').value = category.id;
+    document.getElementById('editCategoryName').value = category.name;
+    document.getElementById('editCategoryType').value = category.type;
+
+    modal.classList.remove('hidden');
+}
+
+export function displayCategories(categories) {
+    const categoryList = document.getElementById('categoryList');
+    if (!categoryList) {
+        console.error('Category list element not found');
+        return;
+    }
+
+    categoryList.innerHTML = categories.map(category => `
+        <li class="py-2 px-3 flex justify-between items-center hover:bg-gray-50 rounded-lg transition-colors duration-200">
+            <span class="text-gray-700">${category.name}</span>
+            <div class="flex space-x-2">
+                <button class="edit-category text-blue-600 hover:text-blue-800 transition-colors duration-200" 
+                        data-category-id="${category.id}"
+                        title="Edit Category">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" 
+                              stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z">
+                        </path>
+                    </svg>
+                </button>
+                <button class="delete-category text-red-600 hover:text-red-800 transition-colors duration-200" 
+                        data-category-id="${category.id}"
+                        title="Delete Category">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" 
+                              stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16">
+                        </path>
+                    </svg>
+                </button>
+            </div>
+        </li>
+    `).join('');
+
+    attachCategoryEventListeners(categoryList);
+}
+
+function attachCategoryEventListeners(categoryList) {
+    // Event listeners per i pulsanti
+    categoryList.querySelectorAll('.edit-category').forEach(button => {
+        button.addEventListener('click', async (e) => {
+            e.preventDefault();
+            const categoryId = button.dataset.categoryId;
+            if (categoryId) {
+                try {
+                    console.log('Edit clicked for category:', categoryId);
+                    const category = await getCategoryDetails(categoryId);
+                    console.log('Category details received:', category);
+                    showEditCategoryModal(category);
+                } catch (error) {
+                    console.error('Error loading category details:', error);
+                    showNotification('Error loading category details', 'error');
+                }
+            }
+        });
+    });
+
+    categoryList.querySelectorAll('.delete-category').forEach(button => {
+        button.addEventListener('click', (e) => {
+            e.preventDefault();
+            const categoryId = button.dataset.categoryId;
+            if (categoryId) handleCategoryDelete(categoryId);
+        });
+    });
 }
 
 // Add other category-related functions as needed

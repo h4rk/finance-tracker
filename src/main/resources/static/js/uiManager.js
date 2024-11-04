@@ -8,6 +8,7 @@ import { updateTrendChart, updateBudgetProgress } from './chartManager.js';
 import { formatCurrency, showNotification } from './utils.js';
 import { formatDate } from './dateManager.js';
 import { handleNewTransaction } from './transactionManager.js';
+import { displayCategories } from './categoryManager.js';
 
 // Dashboard Loading
 async function loadDashboardData() {
@@ -34,7 +35,6 @@ async function loadDashboardData() {
             updateBudgetProgress(transactions);
         } else {
             console.log('No transactions available');
-            // Opzionalmente, mostra un messaggio o uno stato vuoto
         }
         
     } catch (error) {
@@ -71,12 +71,9 @@ async function loadTransactions(filters = {}) {
 // Event Handlers
 function setupEventListeners() {
     const elements = [
-        { id: 'newTransactionForm', event: 'submit', handler: handleNewTransaction },
-        // { id: 'newCategoryForm', event: 'submit', handler: handleNewCategory }, fra mi sa che non serve e mi duplichi le categorie
         { id: 'transactionSearch', event: 'input', handler: handleTransactionFilter },
         { id: 'transactionFilter', event: 'change', handler: handleTransactionFilter },
-        { id: 'trendPeriod', event: 'change', handler: () => loadDashboardData() },
-        { id: 'transactionType', event: 'change', handler: updateTransactionTypeUI }
+        { id: 'trendPeriod', event: 'change', handler: () => loadDashboardData() }
     ];
 
     elements.forEach(({ id, event, handler }) => {
@@ -87,7 +84,6 @@ function setupEventListeners() {
     });
 
     setupDelegatedEvents();
-    setupModalInteractions();
 }
 
 function setupDelegatedEvents() {
@@ -99,21 +95,6 @@ function setupDelegatedEvents() {
             if (deleteBtn) {
                 const categoryId = deleteBtn.dataset.categoryId;
                 await handleDeleteCategory(categoryId);
-            }
-        });
-    }
-
-    // Transaction table delegation
-    const transactionTable = document.getElementById('transactionTable');
-    if (transactionTable) {
-        transactionTable.addEventListener('click', async (e) => {
-            const target = e.target;
-            const transactionId = target.dataset.transactionId;
-
-            if (target.classList.contains('delete-transaction')) {
-                await handleDeleteTransaction(transactionId);
-            } else if (target.classList.contains('view-transaction')) {
-                await showTransactionDetails(transactionId);
             }
         });
     }
@@ -133,20 +114,6 @@ async function handleDeleteCategory(categoryId) {
     }
 }
 
-async function handleDeleteTransaction(transactionId) {
-    try {
-        await deleteTransaction(transactionId);
-        await Promise.all([
-            loadDashboardData(),
-            loadTransactions()
-        ]);
-        showNotification('Transazione eliminata con successo', 'success');
-    } catch (error) {
-        console.error('Error deleting transaction:', error);
-        showNotification('Errore nell\'eliminazione della transazione', 'error');
-    }
-}
-
 async function handleTransactionFilter() {
     const searchTerm = document.getElementById('transactionSearch').value;
     const filterType = document.getElementById('transactionFilter').value;
@@ -160,25 +127,6 @@ function displayMonthlySummary({ income, expenses, delta }) {
     const balanceElement = document.getElementById('balance');
     balanceElement.textContent = formatCurrency(delta);
     balanceElement.className = delta > 0 ? 'text-green-600' : 'text-red-600';
-}
-
-function displayCategories(categories) {
-    const categoryList = document.getElementById('categoryList');
-    if (!categoryList) return;
-
-    categoryList.innerHTML = categories.map(category => `
-        <li class="py-2 flex justify-between items-center">
-            <span>${category.name}</span>
-            <button class="delete-category text-red-600 hover:text-red-800" 
-                    data-category-id="${category.id}">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" 
-                          stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16">
-                    </path>
-                </svg>
-            </button>
-        </li>
-    `).join('');
 }
 
 function displayTransactions(transactions) {
@@ -227,69 +175,12 @@ function filterTransactions(transactions, { searchTerm = '', filterType = 'all' 
     });
 }
 
-function updateTransactionTypeUI() {
-    const transactionType = document.getElementById('transactionType');
-    const submitButton = document.getElementById('submitTransaction');
-    const label = document.querySelector('label[for="amount"]');
-    
-    if (!transactionType || !submitButton || !label) return;
-
-    const isIncome = transactionType.checked;
-    
-    // Update label
-    label.textContent = isIncome ? 'Importo (Entrata):' : 'Importo (Uscita):';
-    
-    // Update button colors
-    submitButton.classList.remove(
-        isIncome ? 'bg-red-600' : 'bg-green-600',
-        isIncome ? 'hover:bg-red-700' : 'hover:bg-green-700',
-        isIncome ? 'focus:ring-red-500' : 'focus:ring-green-500'
-    );
-    submitButton.classList.add(
-        isIncome ? 'bg-green-600' : 'bg-red-600',
-        isIncome ? 'hover:bg-green-700' : 'hover:bg-red-700',
-        isIncome ? 'focus:ring-green-500' : 'focus:ring-red-500'
-    );
-}
-
-async function showTransactionDetails(transactionId) {
-    try {
-        const transaction = await fetch(`/movs/${transactionId}`).then(r => r.json());
-        const modal = document.getElementById('transactionDetails');
-        if (!modal) return;
-
-        // Populate modal with transaction details
-        modal.querySelector('.transaction-date').textContent = formatDate(transaction.date);
-        modal.querySelector('.transaction-description').textContent = transaction.description;
-        modal.querySelector('.transaction-amount').textContent = formatCurrency(transaction.amount);
-        modal.querySelector('.transaction-categories').textContent = transaction.categoryName || 'N/A';
-
-        modal.classList.remove('hidden');
-    } catch (error) {
-        console.error('Error loading transaction details:', error);
-        showNotification('Errore nel caricamento dei dettagli della transazione', 'error');
-    }
-}
-
-function setupModalInteractions() {
-    document.addEventListener('click', (e) => {
-        if (e.target.matches('[id$="Modal"], [id$="Modal"] [id^="close"]')) {
-            e.target.closest('.modal').classList.add('hidden');
-        }
-    });
-}
-
-// Initialize UI when DOM is loaded
-document.addEventListener('DOMContentLoaded', () => {
-    setupEventListeners();
-    loadDashboardData();
-    updateTransactionTypeUI();
-});
-
-// Esportiamo tutte le funzioni necessarie
+// Esporta tutte le funzioni necessarie in un unico export
 export {
     loadDashboardData,
     loadCategories,
     loadTransactions,
-    setupEventListeners
+    setupEventListeners,
+    displayTransactions,
+    updateCategorySelect
 };

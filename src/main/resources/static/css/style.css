@@ -191,3 +191,63 @@ html {
 .container {
     max-width: 95vw !important;
 }
+
+/* Aggiungi transizioni fluide */
+.modal {
+    transition: opacity 0.3s ease-in-out;
+}
+
+.notification {
+    transition: transform 0.3s ease-in-out;
+}
+
+.table-row {
+    transition: background-color 0.2s ease-in-out;
+}
+
+/* Aggiungi animazioni per le azioni */
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+.fade-in {
+    animation: fadeIn 0.3s ease-in-out;
+}
+
+/* Category list styles */
+#categoryList li {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.75rem;
+    margin-bottom: 0.5rem;
+    border-radius: 0.5rem;
+    transition: all 0.2s ease-in-out;
+}
+
+#categoryList li:hover {
+    background-color: #f3f4f6;
+
+}
+
+#categoryList .button-group {
+    display: flex;
+    gap: 0.5rem;
+    opacity: 0.7;
+    transition: opacity 0.2s ease-in-out;
+}
+
+#categoryList li:hover .button-group {
+    opacity: 1;
+}
+
+#categoryList button {
+    padding: 0.25rem;
+    border-radius: 0.25rem;
+    transition: all 0.2s ease-in-out;
+}
+
+#categoryList button:hover {
+    transform: scale(1.1);
+}

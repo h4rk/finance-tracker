@@ -1,6 +1,9 @@
 package h4rk.finance.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import java.util.Map;
 
@@ -21,7 +24,21 @@ public class AnalyticsController {
 	@Autowired
 	private AnalyticsService analyticsService;
 	
-	@Operation(summary = "Get monthly analytics", description = "Retrieves the monthly analytics data")
+	@Operation(
+		summary = "Get monthly analytics",
+		description = "Retrieves the monthly analytics data including income, expenses and balance",
+		responses = {
+			@ApiResponse(
+				responseCode = "200",
+				description = "Monthly analytics retrieved successfully",
+				content = @Content(schema = @Schema(implementation = MonthlyRecap.class))
+			),
+			@ApiResponse(
+				responseCode = "401",
+				description = "Unauthorized"
+			)
+		}
+	)
 	@GetMapping("/monthly")
 	public ResponseEntity<MonthlyRecap> getMonthlyAnalytics() {
 		return ResponseEntity.ok(analyticsService.getMonthlyAnalytics());

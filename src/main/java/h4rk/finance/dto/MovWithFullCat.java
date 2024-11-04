@@ -1,6 +1,8 @@
 package h4rk.finance.dto;
 
 import java.sql.Date;
+import java.util.ArrayList;
+import java.util.List;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -21,4 +23,5 @@ public class MovWithFullCat {
 	private boolean isIncome;
 	private Long catId;
 	private String catName;
+	private List<String> catNames = new ArrayList<>();
 }

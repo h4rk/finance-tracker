@@ -1,6 +1,7 @@
 package h4rk.finance.dto;
 
 import java.sql.Date;
+import java.util.ArrayList;
 import java.util.List;
 
 import lombok.AllArgsConstructor;
@@ -17,6 +18,6 @@ public class MovWithCat {
 	private double amount;
 	private Date date;
 	private boolean isIncome;
-	List<Long> catIds;
+	private List<Long> catIds = new ArrayList<>();
 	
 }

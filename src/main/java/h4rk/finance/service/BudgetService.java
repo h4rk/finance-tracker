@@ -3,11 +3,13 @@ package h4rk.finance.service;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
 import h4rk.finance.dto.BudgetDto;
 import h4rk.finance.repository.BudgetRepository;
 import h4rk.finance.security.service.UserService;
 
+@Service
 public class BudgetService {
 
 	@Autowired

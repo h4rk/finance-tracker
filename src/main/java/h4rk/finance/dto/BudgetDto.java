@@ -1,10 +1,12 @@
 package h4rk.finance.dto;
 
+import java.math.BigDecimal;
+
 import lombok.Data;
 
 @Data
 public class BudgetDto {
-	private Long budget_id;
+	private Long budgetId;
 	private String name;
-	private double amount;
+	private BigDecimal amount;
 }

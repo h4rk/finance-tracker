@@ -3,6 +3,7 @@ DROP TABLE IF EXISTS `finance-tracker`.`mov`;
 DROP TABLE IF EXISTS `finance-tracker`.`cat`;
 DROP TABLE IF EXISTS `finance-tracker`.`cat_type`;
 DROP TABLE IF EXISTS `finance-tracker`.`user`;
+DROP TABLE IF EXISTS `finance-tracker`.`budget`;
 
 CREATE TABLE `finance-tracker`.`user` (
   `user_id` bigint unsigned NOT NULL AUTO_INCREMENT,
@@ -50,5 +51,14 @@ CREATE TABLE `finance-tracker`.`mov_cat` (
   CONSTRAINT `fk_cat_id` FOREIGN KEY (`cat_id`) REFERENCES `cat` (`cat_id`) ON DELETE CASCADE,
   CONSTRAINT `fk_mov_id` FOREIGN KEY (`mov_id`) REFERENCES `mov` (`mov_id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='Table representing N to M relationship between mov table and cat table';
+
+CREATE TABLE `finance-tracker`.`budget` (
+  `budget_id` bigint unsigned NOT NULL AUTO_INCREMENT,
+  `user_id` bigint unsigned NOT NULL,
+  `amount` varchar(255) NOT NULL,
+  `name` varchar(45) NOT NULL,
+  PRIMARY KEY (`budget_id`),
+  CONSTRAINT `fk_user_id_budget` FOREIGN KEY (`user_id`) REFERENCES `user` (`user_id`) ON DELETE RESTRICT
+);
 
 INSERT INTO `finance-tracker`.`cat_type` (`name`) VALUES ('Income'), ('Expense'), ('Both');

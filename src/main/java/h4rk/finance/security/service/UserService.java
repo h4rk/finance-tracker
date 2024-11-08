@@ -7,6 +7,7 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
+import h4rk.finance.exceptions.BusinessException;
 import h4rk.finance.security.dto.User;
 import h4rk.finance.security.repository.UserRepository;
 import lombok.extern.slf4j.Slf4j;
@@ -19,10 +20,10 @@ public class UserService implements UserDetailsService{
 	private UserRepository userRepository;
 
 	@Override
-	public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+	public UserDetails loadUserByUsername(String username) throws BusinessException {
 		User user = userRepository.findByUsername(username);
 		if (user == null) {
-			throw new UsernameNotFoundException("User not found");
+			throw new BusinessException(404, "User not found");
 		}
 		return user;
 	}

@@ -5,7 +5,7 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import h4rk.finance.exceptions.PostMovCatException;
+import h4rk.finance.exceptions.BusinessException;
 import h4rk.finance.repository.MovCatRepository;
 import lombok.extern.slf4j.Slf4j;
 
@@ -20,7 +20,7 @@ public class MovCatService {
 			movCatRepository.postMovCat(movId, catIds);
 		} catch (Exception e) {
 			log.error("Error executing postMovCat(): movId=["+movId+"], catIds=["+catIds+"]");
-			throw new PostMovCatException("Error while posting categories for movement.", e);
+			throw new BusinessException("Error while posting categories for movement.", e);
 		}
 	}
 

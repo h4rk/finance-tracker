@@ -2,10 +2,6 @@ package h4rk.finance.service;
 
 import h4rk.finance.dto.Cat;
 import h4rk.finance.dto.CatType;
-import h4rk.finance.exceptions.DeleteCatsException;
-import h4rk.finance.exceptions.GetCatTypesException;
-import h4rk.finance.exceptions.GetCatsException;
-import h4rk.finance.exceptions.PostCatsException;
 import h4rk.finance.repository.CatTypeRepository;
 import h4rk.finance.repository.CatsRepository;
 import h4rk.finance.security.service.UserService;

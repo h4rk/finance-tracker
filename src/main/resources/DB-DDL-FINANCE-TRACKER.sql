@@ -2,8 +2,8 @@ DROP TABLE IF EXISTS `finance-tracker`.`mov_cat`;
 DROP TABLE IF EXISTS `finance-tracker`.`mov`;
 DROP TABLE IF EXISTS `finance-tracker`.`cat`;
 DROP TABLE IF EXISTS `finance-tracker`.`cat_type`;
-DROP TABLE IF EXISTS `finance-tracker`.`user`;
 DROP TABLE IF EXISTS `finance-tracker`.`budget`;
+DROP TABLE IF EXISTS `finance-tracker`.`user`;
 
 CREATE TABLE `finance-tracker`.`user` (
   `user_id` bigint unsigned NOT NULL AUTO_INCREMENT,
@@ -55,7 +55,7 @@ CREATE TABLE `finance-tracker`.`mov_cat` (
 CREATE TABLE `finance-tracker`.`budget` (
   `budget_id` bigint unsigned NOT NULL AUTO_INCREMENT,
   `user_id` bigint unsigned NOT NULL,
-  `amount` varchar(255) NOT NULL,
+  `amount` double NOT NULL,
   `name` varchar(45) NOT NULL,
   PRIMARY KEY (`budget_id`),
   CONSTRAINT `fk_user_id_budget` FOREIGN KEY (`user_id`) REFERENCES `user` (`user_id`) ON DELETE RESTRICT

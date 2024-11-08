@@ -2,8 +2,8 @@ DROP TABLE IF EXISTS `finance-tracker`.`mov_cat`;
 DROP TABLE IF EXISTS `finance-tracker`.`mov`;
 DROP TABLE IF EXISTS `finance-tracker`.`cat`;
 DROP TABLE IF EXISTS `finance-tracker`.`cat_type`;
-DROP TABLE IF EXISTS `finance-tracker`.`user`;
 DROP TABLE IF EXISTS `finance-tracker`.`budget`;
+DROP TABLE IF EXISTS `finance-tracker`.`user`;
 
 CREATE TABLE `finance-tracker`.`user` (
   `user_id` bigint unsigned NOT NULL AUTO_INCREMENT,
@@ -62,3 +62,7 @@ CREATE TABLE `finance-tracker`.`budget` (
 );
 
 INSERT INTO `finance-tracker`.`cat_type` (`name`) VALUES ('Income'), ('Expense'), ('Both');
+
+-- Insert default user into the user table
+INSERT INTO `finance-tracker`.`user` (`username`, `password`, `roles`) VALUES
+('admin', '$2a$10$WvwAjX5lXiz2mtEyhlKAJ.upvS4hxUuUxyBkVsemInekpIyrkMlkO', 'ROLE_USER,ROLE_ADMIN');

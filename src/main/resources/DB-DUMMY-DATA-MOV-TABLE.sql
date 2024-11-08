@@ -1,7 +1,3 @@
--- Insert user into the user table
-INSERT INTO `finance-tracker`.`user` (`username`, `password`, `roles`) VALUES
-('admin', '$2a$10$WvwAjX5lXiz2mtEyhlKAJ.upvS4hxUuUxyBkVsemInekpIyrkMlkO', 'ROLE_USER,ROLE_ADMIN');
-
 -- create categories
 INSERT INTO `finance-tracker`.`cat` (`name`, `cat_type`, `user_id`) VALUES
 ('Stipendio', 1, 1),

@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import h4rk.finance.dto.BudgetDto;
 import h4rk.finance.service.BudgetService;
-import io.swagger.v3.oas.annotations.parameters.RequestBody;
+import org.springframework.web.bind.annotation.RequestBody;
 
 import java.util.List;
 

@@ -5,6 +5,7 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import h4rk.finance.dto.BudgetDto;
+import h4rk.finance.exceptions.BusinessException;
 import h4rk.finance.repository.BudgetRepository;
 import h4rk.finance.security.service.UserService;
 
@@ -21,7 +22,7 @@ public class BudgetService {
 		try {
 			return budgetRepository.getBudgets(userService.getCurrentUserId());
 		} catch (Exception e) {
-			throw new RuntimeException("Error getting budgets", e);
+			throw new BusinessException("Error getting budgets", e);
 		}
 	}
 
@@ -29,7 +30,7 @@ public class BudgetService {
 		try {
 			return budgetRepository.getBudgetById(budgetId, userService.getCurrentUserId());
 		} catch (Exception e) {
-			throw new RuntimeException("Error getting budget", e);
+			throw new BusinessException("Error getting budget", e);
 		}	
 	}
 
@@ -38,7 +39,7 @@ public class BudgetService {
 			budgetRepository.postBudget(budgetDto, userService.getCurrentUserId());
 			return budgetDto;
 		} catch (Exception e) {
-			throw new RuntimeException("Error creating budget", e);
+			throw new BusinessException("Error creating budget", e);
 		}
 	}
 
@@ -46,7 +47,7 @@ public class BudgetService {
 		try {
 			budgetRepository.putBudget(budgetId, budgetDto, userService.getCurrentUserId());
 		} catch (Exception e) {
-			throw new RuntimeException("Error updating budget", e);
+			throw new BusinessException("Error updating budget", e);
 		}
 	}
 
@@ -54,7 +55,7 @@ public class BudgetService {
 		try {
 			budgetRepository.deleteBudget(budgetId, userService.getCurrentUserId());
 		} catch (Exception e) {
-			throw new RuntimeException("Error deleting budget", e);
+			throw new BusinessException("Error deleting budget", e);
 		}
 	}
 }

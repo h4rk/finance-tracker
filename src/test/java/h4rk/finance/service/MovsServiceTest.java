@@ -4,7 +4,7 @@ import h4rk.finance.dto.Cat;
 import h4rk.finance.dto.Mov;
 import h4rk.finance.dto.MovWithCat;
 import h4rk.finance.dto.MovWithFullCat;
-import h4rk.finance.exceptions.PostMovException;
+import h4rk.finance.exceptions.BusinessException;
 import h4rk.finance.repository.MovsRepository;
 import h4rk.finance.security.service.UserService;
 
@@ -79,7 +79,7 @@ public class MovsServiceTest {
         assertEquals(movWithCat, result);
 
 		when(catsService.getCats()).thenReturn(catsKo);
-		assertThrows(PostMovException.class, () -> movsService.postMovs(movWithCat));
+		assertThrows(BusinessException.class, () -> movsService.postMovs(movWithCat));
     }
 
     @Test
@@ -102,12 +102,12 @@ public class MovsServiceTest {
         assertEquals(expected, result);
 
 		when(catsService.getCats()).thenReturn(catsKo);
-		assertThrows(PostMovException.class, () -> movsService.putMovs(1L, movWithCat));
+		assertThrows(BusinessException.class, () -> movsService.putMovs(1L, movWithCat));
     }
 
     @Test
     public void testDeleteMov() {
-        doNothing().when(movRepository.deleteMovs(anyLong(), anyLong()));
+        when(movRepository.deleteMovs(anyLong(), anyLong())).thenReturn(1);
 		when(userService.getCurrentUserId()).thenReturn(1L);
 
         movsService.deleteMovs(1L);

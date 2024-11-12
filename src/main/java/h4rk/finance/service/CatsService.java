@@ -7,10 +7,7 @@ import org.springframework.stereotype.Service;
 
 import h4rk.finance.dto.Cat;
 import h4rk.finance.dto.CatType;
-import h4rk.finance.exceptions.DeleteCatsException;
-import h4rk.finance.exceptions.GetCatTypesException;
-import h4rk.finance.exceptions.GetCatsException;
-import h4rk.finance.exceptions.PostCatsException;
+import h4rk.finance.exceptions.BusinessException;
 import h4rk.finance.repository.CatTypeRepository;
 import h4rk.finance.repository.CatsRepository;
 import h4rk.finance.security.service.UserService;
@@ -37,31 +34,47 @@ public class CatsService {
             return cats;
         } catch (Exception e) {
             log.error("Error executing getCats(): [{}]", e.getMessage());
-            throw new GetCatsException("Error while getting the category", e);
+            throw new BusinessException("Error while getting the category", e);
         }
     }
 
 	public Cat getCatById(Long id) {
-		return catsRepository.getCatById(id, userService.getCurrentUserId());
+		log.info("Executing getCatById() with id: [{}]...", id);
+		try {
+			Cat c = catsRepository.getCatById(id, userService.getCurrentUserId());
+			if (c == null) {
+				throw new BusinessException(404, "Category not found");
+			}
+			return c;
+		} catch (Exception e) {
+			log.error("Error executing getCatById(): [{}]", e.getMessage());
+			throw new BusinessException("Error while getting the category by id.", e);
+		}
 	}
 
     public Cat postCat(Cat cat) {
         log.info("Executing postCat() with cat: [{}]...", cat);
-
         try {
             return catsRepository.postCat(cat, userService.getCurrentUserId());
         } catch (Exception e) {
             log.error("Error executing postCat(): [{}]", e.getMessage());
-            throw new PostCatsException("Error while posting the category.", e);
+            throw new BusinessException("Error while posting the category.", e);
         }
     }
 
 	public void putCat(long id, Cat cat) {
-		Cat old = catsRepository.getCatById(id, userService.getCurrentUserId());
-		if(old == null){
-			throw new IllegalArgumentException("Category not found");
+		log.info("Executing putCat() with id: [{}]...", id);
+		try {
+			Cat old = catsRepository.getCatById(id, userService.getCurrentUserId());
+			if(old == null){
+				throw new IllegalArgumentException("Category not found");
+			}
+			catsRepository.putCat(cat, id, userService.getCurrentUserId());
+		} catch (Exception e) {
+			log.error("Error executing putCat(): [{}]", e.getMessage());
+			throw new BusinessException("Error while updating the category.", e);
 		}
-		catsRepository.putCat(cat, id, userService.getCurrentUserId());
+		
 	}
 
     public void deleteCat(long id) {
@@ -70,7 +83,7 @@ public class CatsService {
             catsRepository.deleteCat(id, userService.getCurrentUserId());
         } catch (Exception e) {
             log.error("Error executing deleteCat(): [{}]", e.getMessage());
-            throw new DeleteCatsException("Error while deleting the category.", e);
+            throw new BusinessException("Error while deleting the category.", e);
         }
     }
 
@@ -82,7 +95,7 @@ public class CatsService {
 			return catTypes;
 		} catch (Exception e) {
 			log.error("Error executing getCatTypes(): [{}]", e.getMessage());
-			throw new GetCatTypesException("Error while getting the category types", e);
+			throw new BusinessException("Error while getting the category types", e);
 		}
 	}
 }

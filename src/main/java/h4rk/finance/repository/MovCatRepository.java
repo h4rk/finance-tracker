@@ -9,6 +9,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
+import h4rk.finance.exceptions.BusinessException;
+
 @Repository
 public class MovCatRepository {
 
@@ -22,7 +24,7 @@ public class MovCatRepository {
 		if(Arrays.stream(i).sum()==catIds.size()) {
 			return Arrays.stream(i).sum();
 		} else {
-			throw new RuntimeException("Error inserting mov_cat, number of inserts not equal to number of input catIds");
+			throw new BusinessException(500, "Error inserting mov_cat, number of inserts not equal to number of input catIds");
 		}
 	}
 

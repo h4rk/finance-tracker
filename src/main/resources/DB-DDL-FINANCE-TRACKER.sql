@@ -1,4 +1,5 @@
 DROP TABLE IF EXISTS `finance-tracker`.`mov_cat`;
+DROP TABLE IF EXISTS `finance-tracker`.`budget_category`;
 DROP TABLE IF EXISTS `finance-tracker`.`mov`;
 DROP TABLE IF EXISTS `finance-tracker`.`cat`;
 DROP TABLE IF EXISTS `finance-tracker`.`cat_type`;
@@ -47,7 +48,6 @@ CREATE TABLE `finance-tracker`.`mov_cat` (
   `mov_id` bigint unsigned NOT NULL,
   `cat_id` bigint unsigned NOT NULL,
   UNIQUE KEY `unique_mov_cat_ids` (`mov_id`,`cat_id`),
-  KEY `fk_cat_id` (`cat_id`),
   CONSTRAINT `fk_cat_id` FOREIGN KEY (`cat_id`) REFERENCES `cat` (`cat_id`) ON DELETE CASCADE,
   CONSTRAINT `fk_mov_id` FOREIGN KEY (`mov_id`) REFERENCES `mov` (`mov_id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='Table representing N to M relationship between mov table and cat table';
@@ -60,6 +60,15 @@ CREATE TABLE `finance-tracker`.`budget` (
   PRIMARY KEY (`budget_id`),
   CONSTRAINT `fk_user_id_budget` FOREIGN KEY (`user_id`) REFERENCES `user` (`user_id`) ON DELETE RESTRICT
 );
+
+CREATE TABLE `finance-tracker`.`budget_category` (
+  `budget_id` bigint unsigned NOT NULL,
+  `cat_id` bigint unsigned NOT NULL,
+  UNIQUE KEY `unique_budget_category_ids` (`budget_id`,`cat_id`),
+  CONSTRAINT `fk_cat_id_bc` FOREIGN KEY (`cat_id`) REFERENCES `cat` (`cat_id`) ON DELETE CASCADE,
+  CONSTRAINT `fk_budget_id_bc` FOREIGN KEY (`budget_id`) REFERENCES `budget` (`budget_id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='Table representing N to M relationship between budget table and cat table';
+
 
 INSERT INTO `finance-tracker`.`cat_type` (`name`) VALUES ('Income'), ('Expense'), ('Both');
 

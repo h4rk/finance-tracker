@@ -28,7 +28,6 @@ public class CatsRepository {
 			 userId);
     }
 
-    @SuppressWarnings("null")
 	public Cat postCat(Cat cat, long userId) {
 		KeyHolder keyHolder = new GeneratedKeyHolder();
 

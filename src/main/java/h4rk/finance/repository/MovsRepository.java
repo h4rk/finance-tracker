@@ -1,6 +1,5 @@
 package h4rk.finance.repository;
 
-import java.math.BigInteger;
 import java.sql.PreparedStatement;
 import java.sql.Statement;
 import java.util.List;

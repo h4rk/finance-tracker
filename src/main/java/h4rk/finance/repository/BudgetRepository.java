@@ -3,7 +3,6 @@ package h4rk.finance.repository;
 import java.math.BigDecimal;
 import java.sql.Types;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -102,15 +101,14 @@ public class BudgetRepository {
 			});
 	}
 
-	public BudgetDto postBudget(BudgetDto budgetDto, Long userId) {
+	public Long postBudget(BudgetDto budgetDto, Long userId) {
 		String sql = "INSERT INTO budget (name, amount, user_id) VALUES (?, ?, ?)";
 		KeyHolder keyHolder = new GeneratedKeyHolder();
 		jdbcTemplate.update(sql,
 			 new Object[] { budgetDto.getName(), budgetDto.getBudgetAmount(), userId },
 			 new int[] {Types.VARCHAR, Types.NUMERIC, Types.NUMERIC},
 			 keyHolder);
-		budgetDto.setBudgetId((Long)keyHolder.getKey());
-		return budgetDto;
+		return keyHolder.getKey().longValue();
 	}
 
 	public int putBudget(Long budgetId, BudgetDto budgetDto, Long userId) {

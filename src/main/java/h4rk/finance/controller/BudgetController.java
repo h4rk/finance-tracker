@@ -17,7 +17,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 
 @RestController
-public class BudgetContoller {
+public class BudgetController {
 
     @Autowired
     private BudgetService budgetService;

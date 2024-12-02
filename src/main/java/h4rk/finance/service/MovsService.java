@@ -58,8 +58,11 @@ public class MovsService {
 			Long new_id = movsRepository.postMovs(new Mov(movWithCat.getDescription(),
 																 movWithCat.getAmount(), movWithCat.getDate(),
 																 movWithCat.isIncome()), userService.getCurrentUserId());
+																 
 			//Post the categories for the movement
-			movCatService.postMovCat(new_id, movWithCat.getCatIds());
+			if(movWithCat.getCatIds().size() > 0) {
+				movCatService.postMovCat(new_id, movWithCat.getCatIds());
+			}
 			//Set the new id
 			movWithCat.setId(new_id);
 

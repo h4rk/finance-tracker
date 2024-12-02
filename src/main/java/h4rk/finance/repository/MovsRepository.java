@@ -1,5 +1,6 @@
 package h4rk.finance.repository;
 
+import java.math.BigInteger;
 import java.sql.PreparedStatement;
 import java.sql.Statement;
 import java.util.List;
@@ -16,6 +17,7 @@ import java.sql.Types;
 import h4rk.finance.dto.Mov;
 import h4rk.finance.dto.MovWithCat;
 import h4rk.finance.dto.MovWithFullCat;
+import h4rk.finance.exceptions.BusinessException;
 
 @Repository
 public class MovsRepository {
@@ -43,7 +45,13 @@ public class MovsRepository {
           return ps;
         }, keyHolder);
 
-        return (Long) keyHolder.getKey();
+		Long new_id;
+		try {
+			new_id = keyHolder.getKey().longValue();
+		} catch (NullPointerException e) {
+			throw new BusinessException("Errore nel recupero dell'id dopo l'operazione");
+		}
+        return new_id;
     }
 
 	public int putMovs(long id, Mov mov, long userId) {

@@ -1,6 +1,7 @@
 package h4rk.finance.service;
 
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -20,7 +21,12 @@ public class BudgetService {
 
 	public List<BudgetDto> getBudgets() {
 		try {
-			return budgetRepository.getBudgets(userService.getCurrentUserId());
+			Map<Long, BudgetDto> budgets = budgetRepository.getBudgets(userService.getCurrentUserId());
+			for (BudgetDto budget : budgets.values()) {
+				budget.setTotalSpent(budgetRepository.getBudgetCurrentImport(userService.getCurrentUserId(),
+									budget.getCategories().stream().map(c -> c.getId()).toList()));
+			}
+			return budgets.values().stream().toList();
 		} catch (Exception e) {
 			throw new BusinessException("Error getting budgets", e);
 		}

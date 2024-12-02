@@ -1,12 +1,26 @@
 package h4rk.finance.dto;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.List;
 
-import lombok.Data;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.Setter;
 
-@Data
+@AllArgsConstructor
+@Getter
+@Setter
 public class BudgetDto {
 	private Long budgetId;
 	private String name;
-	private BigDecimal amount;
+	private BigDecimal budgetAmount;
+	private BigDecimal totalSpent;
+	private List<Cat> categories;
+
+
+	public BudgetDto() {
+		this.categories = new ArrayList<>();
+	}
 }
+
